@@ -1,0 +1,14 @@
+[package]
+name = "cli"
+version = "0.1.0"
+authors = ["Antoine Veenstra <AVeenstra@users.noreply.github.com>"]
+edition = "2021"
+license = "MIT/Apache-2.0"
+
+[lib]
+test = true
+
+[dependencies]
+clap = "~2.33.0"
+sut = { path = "../sut" }
+common = { path = "../common" }

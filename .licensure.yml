@@ -1,0 +1,32 @@
+change_in_place: true
+licenses:
+  - files: .*\.rs
+    ident: Apache-2.0 and MIT
+    authors:
+      - name: A Veenstra
+    template: |
+      Copyright [year] [name of author].
+
+      Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or https://www.apache.org/licenses/LICENSE-2.0> or the MIT license <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your option. This file may not be copied, modified, or distributed except according to those terms.
+
+comments:
+  - columns: 120
+    extension: rs
+    commenter:
+      type: line
+      comment_char: "//"
+      trailing_lines: 1
+
+excludes:
+  - \.git.*
+  - .*lock
+  - \.git/.*
+  - \.licensure\.yml
+  - README*
+  - LICENSE*
+  - .*\.(md|rst|txt)
+  - Cargo.*
+  - .*\.toml
+  - .*\.acts
+  - .*\.toml
+  - .*\.toml

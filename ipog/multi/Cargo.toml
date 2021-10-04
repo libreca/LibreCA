@@ -1,0 +1,25 @@
+[package]
+name = "ipog-multi"
+version = "0.1.0"
+authors = ["Antoine Veenstra <AVeenstra@users.noreply.github.com>"]
+edition = "2021"
+license = "MIT/Apache-2.0"
+
+[dependencies]
+cm = { path = "../../cm" }
+common = { path = "../../common" }
+mca = { path = "../../mca" }
+pc-list = { path = "../../pc-list" }
+sut = { path = "../../sut" }
+ipog-single = { path = "../single" }
+
+lazy_static = "~1.4.0"
+num_cpus = "~1.13.0"
+crossbeam = "~0.8.0"
+
+[dev-dependencies]
+cli = { path = "../../cli" }
+
+[features]
+threaded-fill = []
+no-cycle-split = []

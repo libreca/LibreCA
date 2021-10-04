@@ -1,0 +1,21 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2
+p2 (enum): v1, v2, v3, v4, v5, v6, v7, v8
+p3 (enum): v1, v2
+p4 (enum): v1, v2, v3, v4, v5
+p5 (enum): 512, 1024, 2048, 4096, 8192
+p6 (enum): v1, v2, v3, v4, v5, v6
+p7 (bool): TRUE, FALSE
+p8 (bool): TRUE, FALSE
+p9 (bool): TRUE, FALSE
+p10 (bool): TRUE, FALSE
+p11 (bool): TRUE, FALSE
+p12 (bool): TRUE, FALSE
+p13 (enum): v1, v2, v3, v4, v5
+p14 (enum): v1, v2, v3
+p15 (enum): v1, v2
+
+[Constraint]

@@ -1,0 +1,13 @@
+p1: v1, v2;
+p2: v1, v2;
+p3: v1, v2;
+p4: true, false;
+p5: true, false;
+
+$assert (p3=v1  && p2=v1  && p5=false  && p4=false  && p1=v1 ) => ( p1=v1 && ! p1=v1);
+$assert (p1=v2  && p5=true ) => ( p1=v1 && ! p1=v1);
+$assert (p2=v1  && p5=false  && p4=true  && p3=v2  && p1=v1 ) => ( p1=v1 && ! p1=v1);
+$assert (p5=true  && p2=v2 ) => ( p1=v1 && ! p1=v1);
+$assert (p4=false  && p3=v2  && p1=v1 ) => ( p1=v1 && ! p1=v1);
+$assert (p4=true  && p1=v2 ) => ( p1=v1 && ! p1=v1);
+$assert (p3=v1  && p4=true ) => ( p1=v1 && ! p1=v1);

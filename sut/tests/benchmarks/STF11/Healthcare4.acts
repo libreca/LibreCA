@@ -1,0 +1,41 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2
+p2 (enum): v1, v2, v3, v4, v5
+p3 (enum): v1, v2, v3
+p4 (enum): v1, v2, v3
+p5 (enum): v1, v2, v3, v4
+p6 (enum): v1, v2, v3, v4
+p7 (enum): v1, v2
+p8 (enum): v1, v2, v3
+p9 (enum): v1, v2, v3, v4, v5, v6
+p10 (enum): v1, v2, v3, v4
+p11 (enum): v1, v2, v3, v4, v5
+p12 (bool): TRUE, FALSE
+p13 (enum): v1, v2, v3
+p14 (enum): v1, v2, v3
+p15 (enum): v1, v2, v3, v4
+p16 (enum): v1, v2
+p17 (enum): v1, v2
+p18 (enum): v1, v2, v3, v4
+p19 (bool): TRUE, FALSE
+p20 (enum): v1, v2, v3
+p21 (bool): TRUE, FALSE
+p22 (bool): TRUE, FALSE
+p23 (enum): v1, v2, v3
+p24 (bool): TRUE, FALSE
+p25 (enum): v1, v2, v3
+p26 (enum): v1, v2
+p27 (enum): v1, v2
+p28 (enum): v1, v2, v3
+p29 (bool): TRUE, FALSE
+p30 (enum): v1, v2, v3
+p31 (bool): TRUE, FALSE
+p32 (enum): v1, v2, v3, v4
+p33 (enum): v1, v2, v3
+p34 (enum): v1, v2, v3, v4, v5, v6, v7
+p35 (enum): 0, 1, 2
+
+[Constraint]

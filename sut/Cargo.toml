@@ -1,0 +1,51 @@
+[package]
+name = "sut"
+version = "0.1.0"
+authors = ["Antoine Veenstra <AVeenstra@users.noreply.github.com>"]
+edition = "2021"
+license = "MIT/Apache-2.0"
+
+[lib]
+test = true
+
+[dependencies]
+common = { path = "../common" }
+nom = "~6.1.2"
+z3 = { version = "~0.10.0", optional = true }
+minisat = { version = "~0.4.4", git = "ssh://git@github.com/AVeenstra/minisat-rs.git", optional = true }
+
+[dev-dependencies]
+test-utils = { path = "test-utils" }
+
+[features]
+constraints-common = []
+constraints-glucose = ["constraints-minisat", "minisat/glucose", "constraints-common"]
+constraints-minisat = ["minisat", "constraints-common"]
+constraints-z3 = ["z3", "constraints-common"]
+constraints = ["constraints-minisat"]
+
+no-sort = []
+
+[[test]]
+name = "test_benchmarks"
+required-features = ["constraints-minisat", "constraints-z3"]
+
+[[example]]
+name = "parameter_count"
+required-features = []
+
+[[example]]
+name = "parameter_levels"
+required-features = []
+
+[[example]]
+name = "constraint_count"
+required-features = []
+
+[[example]]
+name = "reformat"
+required-features = ["constraints-minisat"]
+
+[[example]]
+name = "sut_to_z3"
+required-features = ["constraints-z3"]

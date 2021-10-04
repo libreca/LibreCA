@@ -1,0 +1,77 @@
+[package]
+name = "libreca"
+version = "0.1.0"
+authors = ["Antoine Veenstra <AVeenstra@users.noreply.github.com>"]
+edition = "2021"
+license = "MIT/Apache-2.0"
+description = "This crate contains two implementations of IPOG"
+readme = "README.md"
+repository = "https://github.com/libreca/LibreCA/"
+
+[dependencies]
+cli = { path = "cli" }
+cm = { path = "cm" }
+common = { path = "common" }
+ipog-multi = { path = "ipog/multi" }
+ipog-single = { path = "ipog/single" }
+mca = { path = "mca" }
+pc-list = { path = "pc-list" }
+sut = { path = "sut" }
+writer = { path = "writer" }
+
+[workspace]
+members = [
+    ".",
+    "cli",
+    "cm",
+    "common",
+    "ipog/multi",
+    "ipog/single",
+    "mca",
+    "pc-list",
+    "sut",
+    "writer",
+]
+
+[dev-dependencies]
+itertools = "~0.10.1"
+
+[features]
+filter-map = ["ipog-single/filter-map"]
+constraints-common = []
+constraints-z3 = ["sut/constraints-z3", "constraints-common"]
+constraints-minisat = ["sut/constraints-minisat", "constraints-common"]
+constraints-glucose = ["sut/constraints-glucose", "constraints-common"]
+constraints = ["constraints-minisat"]
+sub-time = ["common/sub-time"]
+no-sort = ["sut/no-sort"]
+
+score-single = ["ipog-single/score-single"]
+score-double = ["ipog-single/score-double"]
+
+no-cycle-split = ["ipog-multi/no-cycle-split"]
+
+[profile.release]
+opt-level = 3
+debug = 0
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+panic = 'abort'
+incremental = false
+overflow-checks = false
+
+[profile.bench]
+opt-level = 3
+debug = 0
+rpath = false
+lto = true
+debug-assertions = false
+codegen-units = 1
+incremental = false
+overflow-checks = false
+
+[[test]]
+name = "blackbox"
+required-features = ["constraints-common"]

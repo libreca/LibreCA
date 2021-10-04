@@ -1,0 +1,10 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2, v3
+p2 (bool): TRUE, FALSE
+p3 (enum): v1, v2, v3, v4, v5
+p4 (enum): v1, v2, v3, v4
+
+[Constraint]

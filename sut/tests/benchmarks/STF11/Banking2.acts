@@ -1,0 +1,24 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2, v3, v4
+p2 (bool): TRUE, FALSE
+p3 (bool): TRUE, FALSE
+p4 (bool): TRUE, FALSE
+p5 (bool): TRUE, FALSE
+p6 (bool): TRUE, FALSE
+p7 (bool): TRUE, FALSE
+p8 (bool): TRUE, FALSE
+p9 (bool): TRUE, FALSE
+p10 (bool): TRUE, FALSE
+p11 (bool): TRUE, FALSE
+p12 (bool): TRUE, FALSE
+p13 (bool): TRUE, FALSE
+p14 (bool): TRUE, FALSE
+p15 (bool): TRUE, FALSE
+
+[Constraint]
+C1: (p1 != "v3" || p10 != TRUE)
+C2: (p10 != TRUE || p1 != "v2")
+C3: (p10 != TRUE || p1 != "v4")

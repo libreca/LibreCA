@@ -1,0 +1,33 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2, v3
+p2 (enum): v1, v2, v3, v4, v5
+p3 (enum): v1, v2
+p4 (enum): v1, v2, v3
+p5 (enum): v1, v2
+p6 (enum): v1, v2, v3
+p7 (enum): v1, v2, v3
+p8 (enum): v1, v2
+p9 (enum): v1, v2
+p10 (bool): TRUE, FALSE
+
+[Constraint]
+(p9 != "v2" || p8 != "v1")
+(p2 != "v4" || p1 != "v3")
+(p2 != "v3" || p1 != "v3")
+(p2 != "v2" || p1 != "v3")
+(p8 != "v2" || p9 != "v1")
+(p2 != "v1" || p1 != "v3")
+(p2 != "v4" || p10 != "TRUE")
+(p8 != "v2" || p10 != "FALSE" || p2 != "v3")
+(p8 != "v2" || p10 != "FALSE" || p2 != "v1")
+(p5 != "v2" || p4 != "v2")
+(p8 != "v2" || p2 != "v5" || p10 != "FALSE")
+(p2 != "v2" || p8 != "v2" || p10 != "FALSE")
+(p5 != "v2" || p4 != "v1")
+(p4 != "v3" || p5 != "v1")
+(p2 != "v5" || p1 != "v2")
+(p8 != "v1" || p10 != "TRUE")
+(p2 != "v5" || p1 != "v1")

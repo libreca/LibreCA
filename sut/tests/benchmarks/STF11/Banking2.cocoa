@@ -1,0 +1,19 @@
+p1: v1, v2, v3, v4;
+p2: true, false;
+p3: true, false;
+p4: true, false;
+p5: true, false;
+p6: true, false;
+p7: true, false;
+p8: true, false;
+p9: true, false;
+p10: true, false;
+p11: true, false;
+p12: true, false;
+p13: true, false;
+p14: true, false;
+p15: true, false;
+
+$assert (p1=v3  && p10=true ) => ( p1=v1 && ! p1=v1);
+$assert (p10=true  && p1=v2 ) => ( p1=v1 && ! p1=v1);
+$assert (p10=true  && p1=v4 ) => ( p1=v1 && ! p1=v1);

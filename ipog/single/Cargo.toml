@@ -1,0 +1,18 @@
+[package]
+name = "ipog-single"
+version = "0.1.0"
+authors = ["Antoine Veenstra <AVeenstra@users.noreply.github.com>"]
+edition = "2021"
+license = "MIT/Apache-2.0"
+
+[dependencies]
+cm = { path = "../../cm" }
+common = { path = "../../common" }
+mca = { path = "../../mca" }
+pc-list = { path = "../../pc-list" }
+sut = { path = "../../sut" }
+
+[features]
+filter-map = []
+score-single = []
+score-double = []

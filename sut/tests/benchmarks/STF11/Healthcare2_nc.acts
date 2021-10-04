@@ -1,0 +1,18 @@
+[System]
+Name: ss
+
+[Parameter]
+p1 (enum): v1, v2
+p2 (enum): v1, v2, v3
+p3 (enum): v1, v2
+p4 (enum): v1, v2
+p5 (enum): v1, v2, v3
+p6 (enum): v1, v2, v3
+p7 (enum): v1, v2, v3
+p8 (enum): v1, v2, v3
+p9 (enum): v1, v2
+p10 (enum): v1, v2, v3
+p11 (enum): v1, v2, v3, v4
+p12 (enum): v1, v2
+
+[Constraint]

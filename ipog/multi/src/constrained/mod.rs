@@ -17,7 +17,7 @@ use crossbeam::utils::Backoff;
 use cm::{BitArray, CoverageMap};
 use common::{Id, sub_time_it, u_vec, UVec};
 use ipog_single::constrained::{Extension, HorizontalExtension, VerticalExtension};
-use mca::{check_locations, DontCareArray, MCA, new_constrained};
+use mca::{check_locations, DontCareArray, MCA};
 use sut::{ConstrainedSUT, Solver, SolverImpl};
 
 use crate::{CACHE_MASK, IPOGData, Wrapper};
@@ -221,7 +221,7 @@ pub struct ConstrainedMCIPOG<ValueId: Id, ParameterId: Id, const STRENGTH: usize
 impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> ConstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Run the constrained version of IPOG.
     pub fn run(sut: Arc<ConstrainedSUT<ValueId, ParameterId>>, mut solver: SolverImpl) -> MCA<ValueId> {
-        let mca = new_constrained::<ValueId, ParameterId, SolverImpl, STRENGTH>(
+        let mca = MCA::<ValueId>::new_constrained::<ParameterId, SolverImpl, STRENGTH>(
             &sut.sub_sut.parameters,
             &mut solver,
         );

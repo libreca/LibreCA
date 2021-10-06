@@ -42,200 +42,86 @@ pub struct MCA<ValueId: Id> {
     pub new_row: UVec<ValueId>,
 }
 
-// TODO add #[cfg(debug_assertions)]
-/// During debugging this method can check the don't care locations of the row.
-pub fn check_locations<ValueId: Id>(row: &[ValueId], locations: u64) -> bool {
-    assert!(
-        cfg!(debug_assertions),
-        "This method should only be used for debugging"
-    );
-
-    let mut location = 1;
-    for value in row {
-        assert_eq!(
-            if *value == ValueId::dont_care() {
-                location
-            } else {
-                0
-            },
-            location & locations,
-            "{:?} {:b}",
-            row.iter()
-                .map(|e| if *e == ValueId::dont_care() {
-                    "*".to_string()
-                } else {
-                    e.to_string()
-                })
-                .collect::<String>(),
-            locations
-        );
-        location <<= 1;
-    }
-    true
-}
-
-// TODO move to MCA
-/// Create a new MCA with the first *t* columns filled in.
-/// The provided MCA is in colex order.
-///
-/// Will move to `MCA::new_unconstrained` after the compiler does not crash because of it (<https://github.com/rust-lang/rust/issues/70507#issuecomment-615268893>).
-///
-/// # Example
-/// ```
-/// use mca::{MCA, new_unconstrained};
-/// use common::{u_vec, UVec};
-///
-/// let parameters = u_vec![4, 2, 2, 2];
-///
-/// let mca: MCA<usize> = new_unconstrained::<usize, usize, 2>(&parameters);
-///
-/// assert_eq!(mca.array, u_vec![
-///     u_vec![0, 0, 0, 0], // First row is always all zeros
-///     u_vec![1, 0, !0, !0],
-///     u_vec![2, 0, !0, !0],
-///     u_vec![3, 0, !0, !0],
-///     u_vec![0, 1, !0, !0],
-///     u_vec![1, 1, !0, !0],
-///     u_vec![2, 1, !0, !0],
-///     u_vec![3, 1, !0, !0],
-/// ]);
-///
-/// let ls = (!0) << 2; // 0b_1111_1100
-/// assert_eq!(mca.dont_care_locations, u_vec![
-///     0, ls, ls, ls, ls, ls, ls, ls,
-/// ]);
-/// ```
-pub fn new_unconstrained<
-    ValueId: Id,
-    ParameterId: Id,
-    const STRENGTH: usize,
->(
-    parameters: &UVec<ValueId>,
-) -> MCA<ValueId> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
-    let mut capacity: usize = 1;
-    for parameter in parameters.iter().take(STRENGTH) {
-        capacity *= parameter.as_usize();
-    }
-
-    if STRENGTH < parameters.len() {
-        capacity += parameters[0].as_usize() * parameters.len() * STRENGTH * STRENGTH * STRENGTH;
-    }
-    println!("capacity: {}", capacity);
-    let mut array = UVec::with_capacity(capacity);
-    array.push(u_vec![ValueId::default(); parameters.len()]);
-
-    let mut pc = [ParameterId::default(); STRENGTH - 1];
-    for (index, parameter) in pc.iter_mut().enumerate() {
-        *parameter = ParameterId::from_usize(index);
-    }
-
-    let mut values = u_vec![ValueId::dont_care(); parameters.len()];
-    for value in values.iter_mut().take(STRENGTH) {
-        *value = ValueId::default();
-    }
-
-    let generator = ValueGenerator::<ValueId, STRENGTH>::new(
-        parameters,
-        STRENGTH - 1,
-        &pc,
-    );
-    while generator.next_vector_inverse(&mut values) {
-        array.push(values.clone());
-    }
-
-    let mut dont_care_locations = u_vec![DONT_CARE_FILLED << STRENGTH as DontCareArray; array.len()];
-    dont_care_locations.reserve(capacity - array.len());
-    dont_care_locations[0] = 0;
-
-    MCA {
-        array,
-        dont_care_locations,
-        vertical_extension_rows: UVec::with_capacity(capacity),
-        new_row: u_vec![ValueId::dont_care(); parameters.len()],
-    }
-}
-
-// Move to MCA
-/// Create a new MCA with the first *t* columns filled in while respecting the constraints.
-/// The provided MCA is in colex order.
-///
-/// Will move to `MCA::new_constrained` after the compiler does not crash because of it (<https://github.com/rust-lang/rust/issues/70507#issuecomment-615268893>).
-pub fn new_constrained<
-    'a,
-    ValueId: Id,
-    ParameterId: Id,
-    S: Solver<'a>,
-    const STRENGTH: usize,
->(
-    parameters: &UVec<ValueId>,
-    solver: &mut S,
-) -> MCA<ValueId> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
-    let mut capacity: usize = 1;
-    for parameter in parameters.iter().take(STRENGTH) {
-        capacity *= parameter.as_usize();
-    }
-
-    capacity += parameters[0].as_usize() * parameters.len() * STRENGTH * STRENGTH * STRENGTH;
-    println!("capacity: {}", capacity);
-    let mut array = UVec::with_capacity(capacity);
-    array.push(u_vec![ValueId::default(); parameters.len()]);
-
-    let mut pc = [ParameterId::default(); STRENGTH - 1];
-    for (index, parameter) in pc.iter_mut().enumerate() {
-        *parameter = ParameterId::from_usize(index);
-    }
-
-    let mut values = u_vec![ValueId::dont_care(); parameters.len()];
-    for value in values.iter_mut().take(STRENGTH) {
-        *value = ValueId::default();
-    }
-
-    let generator = ValueGenerator::<ValueId, STRENGTH>::new(
-        parameters,
-        STRENGTH - 1,
-        &pc,
-    );
-    while generator.next_vector_inverse(&mut values) {
-        if solver.check_row(&values[..STRENGTH]) {
-            array.push(values.clone());
-        }
-    }
-
-    let mut dont_care_locations = u_vec![DONT_CARE_FILLED << STRENGTH as DontCareArray; array.len()];
-    dont_care_locations.reserve(capacity - array.len());
-    dont_care_locations[0] = 0;
-    MCA {
-        array,
-        dont_care_locations,
-        vertical_extension_rows: UVec::with_capacity(capacity),
-        new_row: u_vec![ValueId::dont_care(); parameters.len()],
-    }
-}
-
 impl<ValueId: Id> MCA<ValueId> {
-    /// Create a new MCA with empty components.
-    pub fn new_empty() -> Self {
-        Self {
-            array: UVec::with_capacity(0),
-            dont_care_locations: UVec::with_capacity(0),
-            vertical_extension_rows: UVec::with_capacity(0),
-            new_row: UVec::with_capacity(0),
-        }
-    }
-
-    /// For future testing. The [new_unconstrained] method will move here in the future.
-    #[allow(dead_code)]
+    /// Create a new MCA with the first *t* columns filled in.
+    /// The provided MCA is in colex order.
+    ///
+    /// # Example
+    /// ```
+    /// use mca::MCA;
+    /// use common::{u_vec, UVec};
+    ///
+    /// let parameters = u_vec![4, 2, 2, 2];
+    ///
+    /// let mca: MCA<usize> = MCA::<usize>::new_unconstrained::<usize, 2>(&parameters);
+    ///
+    /// assert_eq!(mca.array, u_vec![
+    ///     u_vec![0, 0, 0, 0], // First row is always all zeros
+    ///     u_vec![1, 0, !0, !0],
+    ///     u_vec![2, 0, !0, !0],
+    ///     u_vec![3, 0, !0, !0],
+    ///     u_vec![0, 1, !0, !0],
+    ///     u_vec![1, 1, !0, !0],
+    ///     u_vec![2, 1, !0, !0],
+    ///     u_vec![3, 1, !0, !0],
+    /// ]);
+    ///
+    /// let ls = (!0) << 2; // 0b_1111_1100
+    /// assert_eq!(mca.dont_care_locations, u_vec![
+    ///     0, ls, ls, ls, ls, ls, ls, ls,
+    /// ]);
+    /// ```
     pub fn new_unconstrained<
         ParameterId: Id,
         const STRENGTH: usize,
     >(
         parameters: &UVec<ValueId>,
-    ) -> Self where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
-        new_unconstrained::<ValueId, ParameterId, STRENGTH>(parameters)
+    ) -> MCA<ValueId> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+        let mut capacity: usize = 1;
+        for parameter in parameters.iter().take(STRENGTH) {
+            capacity *= parameter.as_usize();
+        }
+
+        if STRENGTH < parameters.len() {
+            capacity += parameters[0].as_usize() * parameters.len() * STRENGTH * STRENGTH * STRENGTH;
+        }
+        println!("capacity: {}", capacity);
+        let mut array = UVec::with_capacity(capacity);
+        array.push(u_vec![ValueId::default(); parameters.len()]);
+
+        let mut pc = [ParameterId::default(); STRENGTH - 1];
+        for (index, parameter) in pc.iter_mut().enumerate() {
+            *parameter = ParameterId::from_usize(index);
+        }
+
+        let mut values = u_vec![ValueId::dont_care(); parameters.len()];
+        for value in values.iter_mut().take(STRENGTH) {
+            *value = ValueId::default();
+        }
+
+        let generator = ValueGenerator::<ValueId, STRENGTH>::new(
+            parameters,
+            STRENGTH - 1,
+            &pc,
+        );
+        while generator.next_vector_inverse(&mut values) {
+            array.push(values.clone());
+        }
+
+        let mut dont_care_locations = u_vec![DONT_CARE_FILLED << STRENGTH as DontCareArray; array.len()];
+        dont_care_locations.reserve(capacity - array.len());
+        dont_care_locations[0] = 0;
+
+        MCA {
+            array,
+            dont_care_locations,
+            vertical_extension_rows: UVec::with_capacity(capacity),
+            new_row: u_vec![ValueId::dont_care(); parameters.len()],
+        }
     }
 
-    /// For future testing. The [new_constrained] method will move here in the future.
-    #[allow(dead_code)]
+    /// Create a new MCA with the first *t* columns filled in while respecting the constraints.
+    /// The provided MCA is in colex order.
     pub fn new_constrained<
         'a,
         ParameterId: Id,
@@ -244,8 +130,57 @@ impl<ValueId: Id> MCA<ValueId> {
     >(
         parameters: &UVec<ValueId>,
         solver: &mut S,
-    ) -> Self where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
-        new_constrained::<ValueId, ParameterId, S, STRENGTH>(parameters, solver)
+    ) -> MCA<ValueId> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+        let mut capacity: usize = 1;
+        for parameter in parameters.iter().take(STRENGTH) {
+            capacity *= parameter.as_usize();
+        }
+
+        capacity += parameters[0].as_usize() * parameters.len() * STRENGTH * STRENGTH * STRENGTH;
+        println!("capacity: {}", capacity);
+        let mut array = UVec::with_capacity(capacity);
+        array.push(u_vec![ValueId::default(); parameters.len()]);
+
+        let mut pc = [ParameterId::default(); STRENGTH - 1];
+        for (index, parameter) in pc.iter_mut().enumerate() {
+            *parameter = ParameterId::from_usize(index);
+        }
+
+        let mut values = u_vec![ValueId::dont_care(); parameters.len()];
+        for value in values.iter_mut().take(STRENGTH) {
+            *value = ValueId::default();
+        }
+
+        let generator = ValueGenerator::<ValueId, STRENGTH>::new(
+            parameters,
+            STRENGTH - 1,
+            &pc,
+        );
+        while generator.next_vector_inverse(&mut values) {
+            if solver.check_row(&values[..STRENGTH]) {
+                array.push(values.clone());
+            }
+        }
+
+        let mut dont_care_locations = u_vec![DONT_CARE_FILLED << STRENGTH as DontCareArray; array.len()];
+        dont_care_locations.reserve(capacity - array.len());
+        dont_care_locations[0] = 0;
+        MCA {
+            array,
+            dont_care_locations,
+            vertical_extension_rows: UVec::with_capacity(capacity),
+            new_row: u_vec![ValueId::dont_care(); parameters.len()],
+        }
+    }
+
+    /// Create a new MCA with empty components.
+    pub fn new_empty() -> Self {
+        Self {
+            array: UVec::with_capacity(0),
+            dont_care_locations: UVec::with_capacity(0),
+            vertical_extension_rows: UVec::with_capacity(0),
+            new_row: UVec::with_capacity(0),
+        }
     }
 
     /// Set the [MCA::vertical_extension_rows] with all rows that the vertical extension should consider.
@@ -366,4 +301,36 @@ pub fn pc_to_mask<ParameterId: Id, const STRENGTH: usize>(
         result += 1 << parameter.as_usize() as DontCareArray;
     }
     (result, result + (1 << at_parameter as DontCareArray))
+}
+
+// TODO add #[cfg(debug_assertions)]
+/// During debugging this method can check the don't care locations of the row.
+pub fn check_locations<ValueId: Id>(row: &[ValueId], locations: u64) -> bool {
+    assert!(
+        cfg!(debug_assertions),
+        "This method should only be used for debugging"
+    );
+
+    let mut location = 1;
+    for value in row {
+        assert_eq!(
+            if *value == ValueId::dont_care() {
+                location
+            } else {
+                0
+            },
+            location & locations,
+            "{:?} {:b}",
+            row.iter()
+                .map(|e| if *e == ValueId::dont_care() {
+                    "*".to_string()
+                } else {
+                    e.to_string()
+                })
+                .collect::<String>(),
+            locations
+        );
+        location <<= 1;
+    }
+    true
 }

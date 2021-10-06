@@ -10,7 +10,7 @@ use std::marker::PhantomData;
 
 use cm::{BIT_MASK, BIT_SHIFT, BitArray, CoverageMap, get_highscore};
 use common::{Id, sub_time_it, u_vec, UVec, ValueGenerator};
-use mca::{check_locations, DontCareArray, MCA, new_unconstrained};
+use mca::{check_locations, DontCareArray, MCA};
 use pc_list::PCList;
 use sut::SUT;
 
@@ -417,10 +417,7 @@ UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, 
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Performs the IPOG algorithm using the specified extension types.
     pub fn run(sut: &mut SUT<ValueId, ParameterId>) -> MCA<ValueId> {
-        // Following makes the compiler crash:
-        // let mut mca = MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
-        // Probably related to: https://github.com/rust-lang/rust/issues/70507#issuecomment-615268893
-        let mut mca = new_unconstrained::<ValueId, ParameterId, STRENGTH>(&sut.parameters);
+        let mut mca = MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
 
         if cfg!(debug_assertions) {
             println!("Initial: {:?}", mca.array.len());

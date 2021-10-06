@@ -12,7 +12,7 @@ use std::marker::PhantomData;
 
 use cm::{BIT_MASK, BIT_SHIFT, BitArray, CoverageMap, get_highscore_blacklisted};
 use common::{Id, sub_time_it, u_vec, UVec, ValueGenerator};
-use mca::{check_locations, DontCareArray, MCA, new_constrained};
+use mca::{check_locations, DontCareArray, MCA};
 use pc_list::PCList;
 use sut::{ConstrainedSUT, Solver};
 
@@ -562,7 +562,7 @@ impl<
         solver_init: &'a S::Init,
     ) -> MCA<ValueId> {
         let mut solver = sut.get_solver::<S>(&solver_init);
-        let mut mca = new_constrained::<ValueId, ParameterId, S, STRENGTH>(
+        let mut mca = MCA::<ValueId>::new_constrained::<ParameterId, S, STRENGTH>(
             &sut.sub_sut.parameters,
             &mut solver,
         );

@@ -15,7 +15,7 @@ use crossbeam::utils::Backoff;
 use cm::{BitArray, CoverageMap};
 use common::{Id, sub_time_it, time_it, u_vec, UVec};
 use ipog_single::unconstrained::{Extension, HorizontalExtension, VerticalExtension};
-use mca::{check_locations, DontCareArray, MCA, new_unconstrained};
+use mca::{check_locations, DontCareArray, MCA};
 use sut::SUT;
 use threads::init_thread_pool;
 
@@ -159,15 +159,14 @@ impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> UnconstrainedMCIPOG<Va
     /// Performs the IPOG algorithm using the specified extension types.
     pub fn run(sut: &SUT<ValueId, ParameterId>) -> MCA<ValueId> {
         if STRENGTH == sut.parameters.len() {
-            return new_unconstrained::<ValueId, ParameterId, STRENGTH>(&sut.parameters);
+            return MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
         }
 
         let wrapper = Wrapper::<ValueId, ParameterId, STRENGTH>::new(sut.parameters.clone(), 0);
         let (senders, receivers) = time_it!(init_thread_pool(wrapper.clone()), "T init");
         let ipog_data = unsafe { wrapper.get_data() };
 
-        ipog_data.mca = new_unconstrained
-            ::<ValueId, ParameterId, STRENGTH>(&sut.parameters);
+        ipog_data.mca = MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
 
         for at_parameter in STRENGTH..sut.parameters.len() {
             ipog_data.at_parameter_main.store(at_parameter, SeqCst);

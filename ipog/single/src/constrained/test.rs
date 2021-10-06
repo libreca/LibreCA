@@ -4,9 +4,8 @@
 // MIT license <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your option. This file may not be copied,
 // modified, or distributed except according to those terms.
 
+use mca::MCA;
 use sut::{parse_constrained, Solver, SolverImpl};
-
-use mca::new_constrained;
 
 #[test]
 fn test_coverage_map() {
@@ -25,7 +24,7 @@ fn test_coverage_map() {
 
     let solver_init = SolverImpl::default_init();
     let mut solver = sut.get_solver::<SolverImpl>(&solver_init);
-    let mca = new_constrained::<usize, usize, SolverImpl, 3>(&sut.sub_sut.parameters, &mut solver);
+    let mca = MCA::<usize>::new_constrained::<usize, SolverImpl, 3>(&sut.sub_sut.parameters, &mut solver);
 
     assert_eq!(mca.array.len(), 2 * 3 * 3 - 2 * 2);
 
@@ -110,8 +109,7 @@ fn test_big() {
 
     let solver_init = SolverImpl::default_init();
     let mut solver = sut.get_solver::<SolverImpl>(&solver_init);
-    let mca =
-        new_constrained::<usize, usize, SolverImpl, 4>(&sut.sub_sut.parameters, &mut solver);
+    let mca = MCA::<usize>::new_constrained::<usize, SolverImpl, 4>(&sut.sub_sut.parameters, &mut solver);
 
     assert_eq!(
         mca.array,

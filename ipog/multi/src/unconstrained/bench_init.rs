@@ -30,7 +30,7 @@ fn bench_initial_single(bencher: &mut Bencher) {
     let parameters = UVec::from(PARAMETERS.to_vec());
 
     bencher.iter(|| {
-        assert_eq!(mca::new_unconstrained::<u8, u8, 6>(&parameters).array.len(), length);
+        assert_eq!(mca::MCA::<u8>::new_unconstrained::<u8, 6>(&parameters).array.len(), length);
     })
 }
 

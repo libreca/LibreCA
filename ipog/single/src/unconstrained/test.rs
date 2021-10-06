@@ -8,7 +8,7 @@ use std::collections::HashSet;
 
 use sut::parse_unconstrained;
 
-use mca::new_unconstrained;
+use mca::MCA;
 
 #[test]
 fn test_coverage_map() {
@@ -19,7 +19,7 @@ fn test_coverage_map() {
         Err(e) => panic!("Parsing went wrong? {:?}", e),
     };
 
-    let mut mca = new_unconstrained::<usize, usize, 3>(&sut.parameters);
+    let mut mca = MCA::<usize>::new_unconstrained::<usize, 3>(&sut.parameters);
 
     assert_eq!(mca.array.len(), 2 * 3 * 3);
 
@@ -62,7 +62,7 @@ fn test_big() {
         Err(e) => panic!("Parsing went wrong? {:?}", e),
     };
 
-    let mca = new_unconstrained::<usize, usize, 4>(&sut.parameters);
+    let mca = MCA::<usize>::new_unconstrained::<usize, 4>(&sut.parameters);
 
     assert_eq!(mca.array.len(), 7 * 6 * 5 * 5);
 }

@@ -303,7 +303,6 @@ pub fn pc_to_mask<ParameterId: Id, const STRENGTH: usize>(
     (result, result + (1 << at_parameter as DontCareArray))
 }
 
-// TODO add #[cfg(debug_assertions)]
 /// During debugging this method can check the don't care locations of the row.
 pub fn check_locations<ValueId: Id>(row: &[ValueId], locations: u64) -> bool {
     assert!(

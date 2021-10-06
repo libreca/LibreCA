@@ -55,15 +55,15 @@ pub use writer;
 /// use std::path::PathBuf;
 /// use cli::SUTWrapper;
 /// use sut::{ConstrainedSUT, SUT};
-/// use common::Id;
+/// use common::Number;
 /// use libreca::main;
 ///
-/// fn unconstrained_method<ValueId: Id, ParameterId: Id,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) -> Result<(), String> {
+/// fn unconstrained_method<ValueId: Number, ParameterId: Number,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) -> Result<(), String> {
 ///     println!("Calling unconstrained IPOG, t={}", STRENGTH);
 ///     Ok(())
 /// }
 ///
-/// fn constrained_method<ValueId: Id, ParameterId: Id,  const STRENGTH: usize>(sut: ConstrainedSUT<ValueId, ParameterId>, _output_path: PathBuf) -> Result<(), String> {
+/// fn constrained_method<ValueId: Number, ParameterId: Number,  const STRENGTH: usize>(sut: ConstrainedSUT<ValueId, ParameterId>, _output_path: PathBuf) -> Result<(), String> {
 ///     println!("Calling constrained IPOG, t={}", STRENGTH);
 ///     Ok(())
 /// }
@@ -81,14 +81,14 @@ pub use writer;
 /// use std::path::PathBuf;
 /// use cli::SUTWrapper;
 /// use sut::{SUT, ConstrainedSUT, parse_unconstrained};
-/// use common::Id;
+/// use common::Number;
 /// use libreca::main;
 ///
-/// fn unconstrained_method<ValueId: Id, ParameterId: Id,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) {
+/// fn unconstrained_method<ValueId: Number, ParameterId: Number,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) {
 ///     println!("Calling unconstrained IPOG, t={}", STRENGTH);
 /// }
 ///
-/// fn constrained_method<ValueId: Id, ParameterId: Id,  const STRENGTH: usize>(sut: ConstrainedSUT<ValueId, ParameterId>, _output_path: PathBuf) {
+/// fn constrained_method<ValueId: Number, ParameterId: Number,  const STRENGTH: usize>(sut: ConstrainedSUT<ValueId, ParameterId>, _output_path: PathBuf) {
 ///     println!("Calling constrained IPOG, t={}", STRENGTH);
 /// }
 ///
@@ -107,10 +107,10 @@ pub use writer;
 ///
 /// use std::path::PathBuf;
 /// use sut::{SUT, ConstrainedSUT, parse_unconstrained};
-/// use common::Id;
+/// use common::Number;
 /// use libreca::main;
 ///
-/// fn unconstrained_method<ValueId: Id, ParameterId: Id,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) {
+/// fn unconstrained_method<ValueId: Number, ParameterId: Number,  const STRENGTH: usize>(sut: SUT<ValueId, ParameterId>, _output_path: PathBuf) {
 ///     println!("Calling unconstrained IPOG, t={}", STRENGTH);
 /// }
 ///

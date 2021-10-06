@@ -10,7 +10,7 @@ use std::iter::Step;
 use std::ops::{Add, AddAssign, Div, Rem, RemAssign, Sub, SubAssign};
 
 /// This allows for dynamic switching between different types to use for the values and parameters.
-pub trait Id:
+pub trait Number:
 'static + Default + Copy + Clone + Send + Sync +
 Display + Debug + Hash +
 Eq + PartialOrd + Step +
@@ -29,10 +29,10 @@ AddAssign + SubAssign + RemAssign
     fn from_usize(other: usize) -> Self;
 }
 
-macro_rules! as_id {
-    ($t:ident, $($ts:ident),+) => { as_id!($t); as_id!($($ts),+); };
+macro_rules! as_number {
+    ($t:ident, $($ts:ident),+) => { as_number!($t); as_number!($($ts),+); };
     ($t:ident) => {
-        impl Id for $t {
+        impl Number for $t {
             #[inline(always)]
             fn dont_care() -> Self { $t::MAX }
             #[inline(always)]
@@ -43,4 +43,4 @@ macro_rules! as_id {
     };
 }
 
-as_id!(u8, u16, u32, u64, u128, usize);
+as_number!(u8, u16, u32, u64, u128, usize);

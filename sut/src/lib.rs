@@ -75,7 +75,7 @@ use std::fs::read_to_string;
 use std::marker::PhantomData;
 use std::path::Path;
 
-use common::{Id, UVec};
+use common::{Number, UVec};
 use constraints::find_problem;
 pub use constraints::solver::Solver;
 #[cfg(feature = "constraints-minisat")]
@@ -127,15 +127,15 @@ struct TemporaryParameter {
 /// one of the levels exceeds the number of levels the ValueId can represent.
 #[derive(Debug)]
 pub enum OverflowError {
-    /// The Id for the values is not big enough for this [SUT].
+    /// The Number for the values is not big enough for this [SUT].
     ValueOverflow,
 
-    /// The Id for the parameters is not big enough for this [SUT].
+    /// The Number for the parameters is not big enough for this [SUT].
     ParameterOverflow,
 }
 
 /// This struct represents the System Under Test (SUT) for which to generate an MCA.
-pub struct SUT<ValueId: Id, ParameterId: Id> {
+pub struct SUT<ValueId: Number, ParameterId: Number> {
     /// The parameter levels of the SUT.
     pub parameters: UVec<ValueId>,
 
@@ -170,7 +170,7 @@ impl SUT<usize, usize> {
     }
 
     /// Check if the parameters fit the given ParameterId type.
-    pub fn parameters_fit<ParameterId: Id>(&self) -> Result<(), OverflowError> {
+    pub fn parameters_fit<ParameterId: Number>(&self) -> Result<(), OverflowError> {
         if self.parameters.len() > ParameterId::dont_care().as_usize() {
             Err(OverflowError::ParameterOverflow)
         } else {
@@ -179,7 +179,7 @@ impl SUT<usize, usize> {
     }
 
     /// Check if the parameter levels fit the given ParameterId type.
-    pub fn values_fit<ValueId: Id>(&self) -> Result<(), OverflowError> {
+    pub fn values_fit<ValueId: Number>(&self) -> Result<(), OverflowError> {
         if !self.parameters.iter().all(|&e| e < ValueId::dont_care().as_usize()) {
             Err(OverflowError::ValueOverflow)
         } else {
@@ -188,7 +188,7 @@ impl SUT<usize, usize> {
     }
 
     /// Mutate from `<usize, usize>` to specific size. Destructive to self.
-    pub fn mutate<ValueId: Id, ParameterId: Id>(self) -> SUT<ValueId, ParameterId> {
+    pub fn mutate<ValueId: Number, ParameterId: Number>(self) -> SUT<ValueId, ParameterId> {
         SUT {
             parameters: self.parameters.into_iter().map(ValueId::from_usize).collect(),
             parameter_names: self.parameter_names,
@@ -199,7 +199,7 @@ impl SUT<usize, usize> {
 }
 
 #[allow(rustdoc::missing_doc_code_examples)]
-impl<'sut, ValueId: Id, ParameterId: Id> TryFrom<&'sut SUT<usize, usize>> for SUT<ValueId, ParameterId> {
+impl<'sut, ValueId: Number, ParameterId: Number> TryFrom<&'sut SUT<usize, usize>> for SUT<ValueId, ParameterId> {
     type Error = OverflowError;
 
     fn try_from(other: &SUT<usize, usize>) -> Result<Self, Self::Error> {
@@ -219,7 +219,7 @@ impl<'sut, ValueId: Id, ParameterId: Id> TryFrom<&'sut SUT<usize, usize>> for SU
 /// Represents a [SUT] with constraints.
 ///
 /// Is used to generate solvers for checking the MCA during construction.
-pub struct ConstrainedSUT<ValueId: Id, ParameterId: Id> {
+pub struct ConstrainedSUT<ValueId: Number, ParameterId: Number> {
     /// The underlying [SUT].
     ///
     /// Changes to the `sub_sut` will break the [ConstrainedSUT] and any related [Solver].
@@ -241,18 +241,18 @@ impl ConstrainedSUT<usize, usize> {
     }
 
     /// Check if the parameters fit the given ParameterId type.
-    pub fn parameters_fit<ParameterId: Id>(&self) -> Result<(), OverflowError> {
+    pub fn parameters_fit<ParameterId: Number>(&self) -> Result<(), OverflowError> {
         self.sub_sut.parameters_fit::<ParameterId>()
     }
 
     /// Check if the parameter levels fit the given ParameterId type.
-    pub fn values_fit<ValueId: Id>(&self) -> Result<(), OverflowError> {
+    pub fn values_fit<ValueId: Number>(&self) -> Result<(), OverflowError> {
         self.sub_sut.values_fit::<ValueId>()
     }
 
     // `into` not possible due to conflict between ConstrainedSUT<ValueId, ParameterId> and ConstrainedSUT<usize, usize>.
     /// Mutate from `<usize, usize>` to specific size. Destructive to self.
-    pub fn mutate<ValueId: Id, ParameterId: Id>(self) -> ConstrainedSUT<ValueId, ParameterId> {
+    pub fn mutate<ValueId: Number, ParameterId: Number>(self) -> ConstrainedSUT<ValueId, ParameterId> {
         ConstrainedSUT {
             sub_sut: SUT::try_from(&self.sub_sut).unwrap(),
             constraints: self.constraints,
@@ -262,7 +262,7 @@ impl ConstrainedSUT<usize, usize> {
     }
 }
 
-impl<ValueId: Id, ParameterId: Id> ConstrainedSUT<ValueId, ParameterId> {
+impl<ValueId: Number, ParameterId: Number> ConstrainedSUT<ValueId, ParameterId> {
     /// Get a solver with the constraints loaded.
     ///
     /// Also sorts the values so that the all zeros row is possible.

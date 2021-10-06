@@ -12,14 +12,14 @@
 
 use std::path::PathBuf;
 
-use libreca::common::{Id, time_it};
+use libreca::common::{Number, time_it};
 use libreca::ipog_single::{constrained, unconstrained};
 use libreca::main;
 use libreca::sut::{ConstrainedSUT, Solver, SolverImpl, SUT};
 use libreca::writer::write_result;
 
 /// Run the single-threaded IPOG for a SUT without constraints.
-fn unconstrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+fn unconstrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     mut sut: SUT<ValueId, ParameterId>, output_path: PathBuf,
 ) -> Result<(), String> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let mca = time_it!(
@@ -39,7 +39,7 @@ fn unconstrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
 }
 
 /// Run the single-threaded IPOG for a SUT with constraints.
-fn constrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+fn constrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     mut sut: ConstrainedSUT<ValueId, ParameterId>, output_path: PathBuf,
 ) -> Result<(), String> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let solver_init = SolverImpl::default_init();

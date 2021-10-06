@@ -11,14 +11,14 @@ use std::fmt::Display;
 use z3::ast::Bool;
 use z3::SatResult;
 
-use common::Id;
+use common::Number;
 
 use crate::{ConstrainedSUT, Solver};
 use crate::expr::expr_z3::CHelpers;
 
 type Enumeration<'ctx> = (z3::Sort<'ctx>, Vec<z3::FuncDecl<'ctx>>, Vec<z3::FuncDecl<'ctx>>);
 
-fn add_testers<'ctx, ValueId: Id, ParameterId: Id>(context: &'ctx z3::Context, helpers: &mut CHelpers<'ctx, '_>, parameter_id: ParameterId, parameter_level: ValueId, enumeration: &Enumeration<'ctx>) {
+fn add_testers<'ctx, ValueId: Number, ParameterId: Number>(context: &'ctx z3::Context, helpers: &mut CHelpers<'ctx, '_>, parameter_id: ParameterId, parameter_level: ValueId, enumeration: &Enumeration<'ctx>) {
     let datatype: z3::ast::Dynamic<'ctx> = z3::ast::Datatype::new_const(context, format!("p{}", parameter_id), &enumeration.0).into();
     let mut value_testers: Vec<z3::ast::Bool<'ctx>> = Vec::with_capacity(parameter_level.as_usize());
     for value in enumeration.2.iter() {
@@ -35,7 +35,7 @@ pub struct Z3Solver<'ctx> {
     parameters: Vec<Vec<Bool<'ctx>>>,
 }
 
-fn create_parameters<'ctx, ValueId: Id, ParameterId: Id>(sut: &ConstrainedSUT<ValueId, ParameterId>, context: &'ctx z3::Context, helpers: &mut CHelpers<'ctx, '_>) {
+fn create_parameters<'ctx, ValueId: Number, ParameterId: Number>(sut: &ConstrainedSUT<ValueId, ParameterId>, context: &'ctx z3::Context, helpers: &mut CHelpers<'ctx, '_>) {
     let mut types: HashMap<ValueId, Enumeration<'ctx>> = HashMap::new();
     for (parameter_id, parameter_level) in sut.sub_sut.parameters.iter().enumerate() {
         match types.get(parameter_level) {
@@ -65,7 +65,7 @@ impl<'ctx> Solver<'ctx> for Z3Solver<'ctx> {
         z3::Context::new(&config)
     }
 
-    fn new<ValueId: Id, ParameterId: Id>(sut: &ConstrainedSUT<ValueId, ParameterId>, context: &'ctx Self::Init) -> Self {
+    fn new<ValueId: Number, ParameterId: Number>(sut: &ConstrainedSUT<ValueId, ParameterId>, context: &'ctx Self::Init) -> Self {
         let mut helpers = CHelpers {
             context,
             parameter_to_id: &sut.parameter_to_id,
@@ -96,12 +96,12 @@ impl<'ctx> Solver<'ctx> for Z3Solver<'ctx> {
         self.solver.push();
     }
 
-    fn push_and_assert_eq<ValueId: Id, ParameterId: Id>(&mut self, parameter_id: ParameterId, value_id: ValueId) {
+    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, parameter_id: ParameterId, value_id: ValueId) {
         self.push();
         self.save_assert_eq(parameter_id.as_usize(), value_id.as_usize());
     }
 
-    fn push_and_assert_row<ValueId: Id>(&mut self, row: &[ValueId]) {
+    fn push_and_assert_row<ValueId: Number>(&mut self, row: &[ValueId]) {
         self.push();
         for (value, testers) in row.iter().zip(self.parameters.iter()) {
             if let Some(tester) = testers.get((*value).as_usize()) {
@@ -110,7 +110,7 @@ impl<'ctx> Solver<'ctx> for Z3Solver<'ctx> {
         }
     }
 
-    fn push_and_assert_row_masked<ValueId: Id, ParameterId: Id>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize) {
+    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize) {
         self.push();
         let mut pc_values = pc.iter().peekable();
         for (parameter_id, (value, testers)) in row.iter().take(at_parameter).zip(self.parameters.iter()).enumerate() {
@@ -126,7 +126,7 @@ impl<'ctx> Solver<'ctx> for Z3Solver<'ctx> {
         }
     }
 
-    fn push_and_assert_interaction<ValueId: Id, ParameterId: Id>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) {
+    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) {
         debug_assert_eq!(pc.len() + 1, values.len());
 
         self.push();

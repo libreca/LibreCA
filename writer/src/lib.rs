@@ -12,13 +12,13 @@ use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
 
-use common::{DONT_CARE_TEXT, Id};
+use common::{DONT_CARE_TEXT, Number};
 use sut::SUT;
 use mca::MCA;
 
 const DONT_CARE_TEXT_BYTES: &[u8] = DONT_CARE_TEXT.as_bytes();
 
-fn write_value<ValueId: Id, ParameterId: Id>(
+fn write_value<ValueId: Number, ParameterId: Number>(
     file: &mut BufWriter<File>,
     sut: &SUT<ValueId, ParameterId>,
     index: usize,
@@ -31,7 +31,7 @@ fn write_value<ValueId: Id, ParameterId: Id>(
 }
 
 /// Write the given [MCA] to the given filename.
-pub fn write_result<ValueId: Id, ParameterId: Id>(
+pub fn write_result<ValueId: Number, ParameterId: Number>(
     sut: &SUT<ValueId, ParameterId>,
     mca: MCA<ValueId>,
     filename: PathBuf,
@@ -44,7 +44,7 @@ pub fn write_result<ValueId: Id, ParameterId: Id>(
     )
 }
 
-fn write_headers<ValueId: Id, ParameterId: Id>(
+fn write_headers<ValueId: Number, ParameterId: Number>(
     sut: &SUT<ValueId, ParameterId>,
     mca_size: usize,
     file: &mut BufWriter<File>,
@@ -61,7 +61,7 @@ fn write_headers<ValueId: Id, ParameterId: Id>(
     file.write_all(b"\n")
 }
 
-fn write_values<I, ValueId: Id, ParameterId: Id>(
+fn write_values<I, ValueId: Number, ParameterId: Number>(
     sut: &SUT<ValueId, ParameterId>,
     mca_size: usize,
     mut mca: I,
@@ -83,7 +83,7 @@ fn write_values<I, ValueId: Id, ParameterId: Id>(
 }
 
 /// Write the provided [Iterator] to a file.
-pub fn write_result_iterable<'a, I, ValueId: Id, ParameterId: Id>(
+pub fn write_result_iterable<'a, I, ValueId: Number, ParameterId: Number>(
     sut: &SUT<ValueId, ParameterId>,
     mca_size: usize,
     mca: I,

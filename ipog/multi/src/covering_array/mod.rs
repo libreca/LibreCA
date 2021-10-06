@@ -10,9 +10,9 @@ use crossbeam::channel::Sender;
 use mca::{DONT_CARE_FILLED, MCA, DontCareArray};
 
 use crate::threads_common::Work;
-use common::{Id, UVec, u_vec};
+use common::{Number, UVec, u_vec};
 
-pub(crate) unsafe fn new_reserved_mca<ValueId: Id, const STRENGTH: usize>(parameters: UVec<ValueId>, senders: &[Sender<Work<ValueId>>], mca: &mut MCA<ValueId>) {
+pub(crate) unsafe fn new_reserved_mca<ValueId: Number, const STRENGTH: usize>(parameters: UVec<ValueId>, senders: &[Sender<Work<ValueId>>], mca: &mut MCA<ValueId>) {
     let mut length: usize = 1;
     for &parameter in parameters.iter().take(STRENGTH) {
         length *= parameter.as_usize();

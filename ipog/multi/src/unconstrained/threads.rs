@@ -13,7 +13,7 @@ use std::thread;
 use crossbeam::channel::{bounded, Receiver, Sender};
 use crossbeam::utils::Backoff;
 
-use common::Id;
+use common::Number;
 use cm::BitArray;
 
 use crate::{CACHE_MASK, IPOGData, MAX_HEAD_START, Wrapper};
@@ -21,7 +21,7 @@ use crate::threads_common::{CHANNEL_BOUNDS, cycling_split, Response, Work};
 
 /// Fills the MCA using multiple threads.
 #[cfg(feature = "threaded-fill")]
-pub unsafe fn new_mca<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(thread_id: usize, ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>) {
+pub unsafe fn new_mca<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(thread_id: usize, ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>) {
     let (mut start, end) = crate::threads_common::split(ipog_data.thread_count, thread_id, ipog_data.mca.array.len());
     if start == 0 {
         start = 1;
@@ -57,7 +57,7 @@ pub unsafe fn new_mca<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(threa
     }
 }
 
-pub(crate) unsafe fn horizontal_extension_worker<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>, thread_id: usize) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub(crate) unsafe fn horizontal_extension_worker<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>, thread_id: usize) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let at_row_worker = &ipog_data.at_row_worker[thread_id];
     at_row_worker.store(0, SeqCst);
     let at_parameter = ipog_data.at_parameter_main.load(SeqCst);
@@ -102,7 +102,7 @@ pub(crate) unsafe fn horizontal_extension_worker<ValueId: Id, ParameterId: Id, c
 }
 
 
-fn thread_main<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(thread_id: usize, ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>, sender: Sender<Response>, receiver: Receiver<Work<ValueId>>) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+fn thread_main<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(thread_id: usize, ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>, sender: Sender<Response>, receiver: Receiver<Work<ValueId>>) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let max_value_choices = *ipog_data.parameters.get(STRENGTH).unwrap_or(&ValueId::default());
     // let mut current_scores_indexes = u_vec![UVec::with_capacity(ipog_data.parameters.len() * STRENGTH * STRENGTH * 100); max_value_choices.as_usize()];
     // let mut previous_scores_indexes = current_scores_indexes.clone();
@@ -130,7 +130,7 @@ fn thread_main<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(thread_id: u
 }
 
 
-pub(crate) fn init_thread_pool<ValueId: Id, ParameterId: 'static + Id, const STRENGTH: usize>(ipog_data_arc: Arc<Wrapper<ValueId, ParameterId, STRENGTH>>) -> (Vec<Sender<Work<ValueId>>>, Vec<Receiver<Response>>) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub(crate) fn init_thread_pool<ValueId: Number, ParameterId: 'static + Number, const STRENGTH: usize>(ipog_data_arc: Arc<Wrapper<ValueId, ParameterId, STRENGTH>>) -> (Vec<Sender<Work<ValueId>>>, Vec<Receiver<Response>>) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let ipog_data = unsafe { &mut *ipog_data_arc.data.get() };
     let mut senders = Vec::with_capacity(ipog_data.thread_count);
     let mut receivers = Vec::with_capacity(ipog_data.thread_count);

@@ -13,7 +13,7 @@ use std::sync::atomic::Ordering::SeqCst;
 use crossbeam::utils::Backoff;
 
 use cm::{BitArray, CoverageMap};
-use common::{Id, sub_time_it, time_it, u_vec, UVec};
+use common::{Number, sub_time_it, time_it, u_vec, UVec};
 use ipog_single::unconstrained::{Extension, HorizontalExtension, VerticalExtension};
 use mca::{check_locations, DontCareArray, MCA};
 use sut::SUT;
@@ -26,7 +26,7 @@ pub mod threads;
 
 
 #[inline]
-unsafe fn get_high_score_and_update<ValueId: Id, const STRENGTH: usize>(
+unsafe fn get_high_score_and_update<ValueId: Number, const STRENGTH: usize>(
     row_scores: &mut UVec<UVec<UVec<BitArray>>>,
     cm: &CoverageMap<ValueId, STRENGTH>,
     scores: &mut UVec<usize>, uses: &UVec<usize>,
@@ -70,7 +70,7 @@ unsafe fn get_high_score_and_update<ValueId: Id, const STRENGTH: usize>(
 }
 
 
-pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     senders: &[crossbeam::channel::Sender<Work<ValueId>>],
     _receivers: &[crossbeam::channel::Receiver<Response>],
     ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>,
@@ -150,12 +150,12 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Id, ParameterId: Id,
 }
 
 /// The toplevel of the IPOG method.
-pub struct UnconstrainedMCIPOG<ValueId: Id, ParameterId: Id, const STRENGTH: usize> {
+pub struct UnconstrainedMCIPOG<ValueId: Number, ParameterId: Number, const STRENGTH: usize> {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> UnconstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> UnconstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Performs the IPOG algorithm using the specified extension types.
     pub fn run(sut: &SUT<ValueId, ParameterId>) -> MCA<ValueId> {
         if STRENGTH == sut.parameters.len() {

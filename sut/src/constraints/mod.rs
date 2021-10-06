@@ -4,7 +4,7 @@
 // MIT license <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your option. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-use common::Id;
+use common::Number;
 
 pub(crate) mod solver;
 
@@ -17,7 +17,7 @@ pub(crate) mod solver_z3;
 pub(crate) mod solver_not_implemented;
 
 
-pub(crate) fn find_problem<'i, Solver: solver::Solver<'i>, ValueId: Id>(solver: &mut Solver, row: &[ValueId], mut start: usize, mut end: usize) -> usize {
+pub(crate) fn find_problem<'i, Solver: solver::Solver<'i>, ValueId: Number>(solver: &mut Solver, row: &[ValueId], mut start: usize, mut end: usize) -> usize {
     while start <= end {
         let mid = (start + end) / 2;
         if solver.check_row(&row[..mid]) {

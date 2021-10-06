@@ -7,7 +7,7 @@
 use std::fmt::Display;
 use std::fmt::Formatter;
 
-use common::Id;
+use common::Number;
 
 use crate::{ConstrainedSUT, Solver};
 
@@ -21,7 +21,7 @@ impl<'ctx> Solver<'ctx> for NotASolver {
         unimplemented!("This program was not compiled with support for constraints.")
     }
 
-    fn new<ValueId: Id, ParameterId: Id>(_sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &'ctx Self::Init) -> Self {
+    fn new<ValueId: Number, ParameterId: Number>(_sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &'ctx Self::Init) -> Self {
         unimplemented!("This program was not compiled with support for constraints.")
     }
 
@@ -33,19 +33,19 @@ impl<'ctx> Solver<'ctx> for NotASolver {
         unimplemented!()
     }
 
-    fn push_and_assert_eq<ValueId: Id, ParameterId: Id>(&mut self, _parameter_id: ParameterId, _value_id: ValueId) {
+    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, _parameter_id: ParameterId, _value_id: ValueId) {
         unimplemented!()
     }
 
-    fn push_and_assert_row<ValueId: Id>(&mut self, _row: &[ValueId]) {
+    fn push_and_assert_row<ValueId: Number>(&mut self, _row: &[ValueId]) {
         unimplemented!()
     }
 
-    fn push_and_assert_row_masked<ValueId: Id, ParameterId: Id>(&mut self, _row: &[ValueId], _pc: &[ParameterId], _at_parameter: usize) {
+    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, _row: &[ValueId], _pc: &[ParameterId], _at_parameter: usize) {
         unimplemented!()
     }
 
-    fn push_and_assert_interaction<ValueId: Id, ParameterId: Id>(&mut self, _pc: &[ParameterId], _at_parameter: usize, _values: &[ValueId]) {
+    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, _pc: &[ParameterId], _at_parameter: usize, _values: &[ValueId]) {
         unimplemented!()
     }
 

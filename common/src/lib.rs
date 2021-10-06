@@ -17,11 +17,11 @@
 #![feature(slice_as_chunks)]
 #![deny(missing_docs, rustdoc::missing_crate_level_docs, future_incompatible)]
 
-pub use id::Id;
+pub use number::Number;
 pub use u_vec::UVec;
 pub use value_generator::ValueGenerator;
 
-mod id;
+mod number;
 mod u_vec;
 mod value_generator;
 

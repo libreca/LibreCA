@@ -6,20 +6,20 @@
 
 //! This module contains the [ValueGenerator], which is used to iterate over the values of a PC.
 
-use crate::{Id, UVec};
+use crate::{Number, UVec};
 
 /// This struct is for iterating over the interactions of a given PC.
-pub struct ValueGenerator<ValueId: Id, const STRENGTH: usize> {
+pub struct ValueGenerator<ValueId: Number, const STRENGTH: usize> {
     /// This array contains the maximum value of each parameter in the PC.
     pub max_values: [ValueId; STRENGTH],
 }
 
-impl<ValueId: Id, const STRENGTH: usize>
+impl<ValueId: Number, const STRENGTH: usize>
 ValueGenerator<ValueId, STRENGTH>
     where [(); STRENGTH - 1]:
 {
     /// Initialise the struct for the provided PC.
-    pub fn new<ParameterId: Id>(
+    pub fn new<ParameterId: Number>(
         parameters: &UVec<ValueId>,
         at_parameter: usize,
         pc: &[ParameterId; STRENGTH - 1],

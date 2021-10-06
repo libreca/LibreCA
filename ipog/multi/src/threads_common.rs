@@ -8,7 +8,7 @@
 
 use std::cmp::min;
 
-use common::{Id, UVec};
+use common::{Number, UVec};
 
 /// The channel between the main thread and the workers is bounded. This constant determines the size of the channel.
 pub const CHANNEL_BOUNDS: usize = 32;
@@ -18,7 +18,7 @@ pub const SUB_SPLIT: usize = 8;
 
 #[allow(dead_code)]
 #[derive(Debug)]
-pub(crate) enum Work<ValueId: Id> {
+pub(crate) enum Work<ValueId: Number> {
     NextParameter,
     SetCovered(ValueId),
     Covered,

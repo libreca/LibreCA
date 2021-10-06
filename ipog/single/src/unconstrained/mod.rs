@@ -9,13 +9,13 @@
 use std::marker::PhantomData;
 
 use cm::{BIT_MASK, BIT_SHIFT, BitArray, CoverageMap, get_highscore};
-use common::{Id, sub_time_it, u_vec, UVec, ValueGenerator};
+use common::{Number, sub_time_it, u_vec, UVec, ValueGenerator};
 use mca::{check_locations, DontCareArray, MCA};
 use pc_list::PCList;
 use sut::SUT;
 
 /// This trait allows for the switching of various IPOG extension methods.
-pub trait Extension<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub trait Extension<ValueId: Number, ParameterId: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Used for debugging purposes.
     const NAME: &'static str;
 
@@ -34,7 +34,7 @@ pub trait Extension<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [
 /// Used while debugging and for comparison with implementations that have unimplemented extensions.
 pub struct NOOPExtension<const STRENGTH: usize>;
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -52,8 +52,8 @@ Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH>
 
 /// This extension prints the timing for the specified SubExtension.
 pub struct TimedExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
@@ -63,8 +63,8 @@ pub struct TimedExtension<
 }
 
 impl<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize,
 > Extension<ValueId, ParameterId, STRENGTH>
@@ -97,15 +97,15 @@ for TimedExtension<ValueId, ParameterId, SubExtension, STRENGTH>
 
 /// This horizontal extension will use bitwise operations to speed up the generation of the MCA.
 pub struct HorizontalExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     const STRENGTH: usize,
 > {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 Extension<ValueId, ParameterId, STRENGTH>
 for HorizontalExtension<ValueId, ParameterId, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
@@ -188,15 +188,15 @@ for HorizontalExtension<ValueId, ParameterId, STRENGTH>
 /// This vertical extension will use bitwise operations to speed up the generation of the MCA.
 /// It will keep track of the number of rows without dont_care values at the start of the MCA and skip them in each iteration.
 pub struct VerticalExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 VerticalExtension<ValueId, ParameterId, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -293,7 +293,7 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
     }
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 Extension<ValueId, ParameterId, STRENGTH>
 for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -399,8 +399,8 @@ for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:,
 
 /// The toplevel of the IPOG method.
 pub struct UnconstrainedIPOG<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>,
     VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize,
@@ -412,7 +412,7 @@ pub struct UnconstrainedIPOG<
     vertical_extension: PhantomData<VerticalExtension>,
 }
 
-impl<ValueId: Id, ParameterId: Id, HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>, VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>, VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>, const STRENGTH: usize>
 UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Performs the IPOG algorithm using the specified extension types.

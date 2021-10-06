@@ -8,7 +8,7 @@ use std::fmt::{Debug, Display};
 
 use minisat::Bool;
 use std::fmt::{Error, Formatter};
-use common::Id;
+use common::Number;
 
 use crate::{ConstrainedSUT, Solver};
 
@@ -27,7 +27,7 @@ impl<'i> Solver<'i> for MiniSatSolver {
 
     fn default_init() -> Self::Init {}
 
-    fn new<ValueId: Id, ParameterId: Id>(sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &'i Self::Init) -> Self {
+    fn new<ValueId: Number, ParameterId: Number>(sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &'i Self::Init) -> Self {
         let mut solver = minisat::Solver::new();
         let mut parameters = Vec::with_capacity(sut.sub_sut.parameters.len());
 
@@ -62,14 +62,14 @@ impl<'i> Solver<'i> for MiniSatSolver {
         self.way_points.push(self.values.len());
     }
 
-    fn push_and_assert_eq<ValueId: Id, ParameterId: Id>(&mut self, parameter_id: ParameterId, value_id: ValueId) {
+    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, parameter_id: ParameterId, value_id: ValueId) {
         self.push();
         if let Some(&tester) = self.parameters[parameter_id.as_usize()].get(value_id.as_usize()) {
             self.values.push(tester);
         }
     }
 
-    fn push_and_assert_row<ValueId: Id>(&mut self, row: &[ValueId]) {
+    fn push_and_assert_row<ValueId: Number>(&mut self, row: &[ValueId]) {
         debug_assert!(self.values.is_empty());
         debug_assert!(self.way_points.is_empty());
         self.push();
@@ -81,7 +81,7 @@ impl<'i> Solver<'i> for MiniSatSolver {
         }
     }
 
-    fn push_and_assert_row_masked<ValueId: Id, ParameterId: Id>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize) {
+    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize) {
         self.push();
         let mut pc_values = pc.iter().peekable();
         for (parameter_id, (value, testers)) in row.iter().take(at_parameter).zip(self.parameters.iter()).enumerate() {
@@ -97,7 +97,7 @@ impl<'i> Solver<'i> for MiniSatSolver {
         }
     }
 
-    fn push_and_assert_interaction<ValueId: Id, ParameterId: Id>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) {
+    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) {
         debug_assert_eq!(pc.len() + 1, values.len());
         debug_assert_eq!(self.values.len(), 0);
         self.push();

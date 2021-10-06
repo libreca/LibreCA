@@ -4,7 +4,7 @@
 // MIT license <LICENSE-MIT or https://opensource.org/licenses/MIT>, at your option. This file may not be copied,
 // modified, or distributed except according to those terms.
 
-use common::Id;
+use common::Number;
 use crate::{ConstrainedSUT};
 
 /// This trait represents any type of solver and allows for switching between backends without too much effort.
@@ -18,7 +18,7 @@ pub trait Solver<'i>: std::fmt::Display {
     fn default_init() -> Self::Init;
 
     /// Create a new [Solver]. Normally called by [ConstrainedSUT::get_solver]
-    fn new<ValueId: Id, ParameterId: Id>(sut: &ConstrainedSUT<ValueId, ParameterId>, args: &'i Self::Init) -> Self;
+    fn new<ValueId: Number, ParameterId: Number>(sut: &ConstrainedSUT<ValueId, ParameterId>, args: &'i Self::Init) -> Self;
 
     /// Check the current stack for validity.
     fn check(&mut self) -> bool;
@@ -44,7 +44,7 @@ pub trait Solver<'i>: std::fmt::Display {
     /// Pushes the row, checks it, and pop it again.
     ///
     /// Requires an empty stack and leaves an empty stack.
-    fn check_row<ValueId: Id>(&mut self, row: &[ValueId]) -> bool {
+    fn check_row<ValueId: Number>(&mut self, row: &[ValueId]) -> bool {
         self.push_and_assert_row(row);
         self.check_and_pop_all(1)
     }
@@ -54,7 +54,7 @@ pub trait Solver<'i>: std::fmt::Display {
     /// Pushes the row, sets the overrides, checks it, and pops it all.
     ///
     /// Requires an empty stack and leaves an empty stack.
-    fn check_row_overrides<ValueId: Id, ParameterId: Id>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) -> bool {
+    fn check_row_overrides<ValueId: Number, ParameterId: Number>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize, values: &[ValueId]) -> bool {
         self.push_and_assert_interaction(pc, at_parameter, values);
         self.push_and_assert_row_masked(row, pc, at_parameter);
         self.check_and_pop_all(2)
@@ -66,18 +66,18 @@ pub trait Solver<'i>: std::fmt::Display {
     fn push(&mut self);
 
     /// Push and then add an equality assertion to the solver.
-    fn push_and_assert_eq<ValueId: Id, ParameterId: Id>(&mut self, parameter_id: ParameterId, value_id: ValueId);
+    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, parameter_id: ParameterId, value_id: ValueId);
 
     /// Push and then add an row equality assertion to the solver.
-    fn push_and_assert_row<ValueId: Id>(&mut self, row: &[ValueId]);
+    fn push_and_assert_row<ValueId: Number>(&mut self, row: &[ValueId]);
 
     // TODO pc has known length
     /// Push and then add an row equality assertion, with exception of the parameters in the provided PC, to the solver.
-    fn push_and_assert_row_masked<ValueId: Id, ParameterId: Id>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize);
+    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, row: &[ValueId], pc: &[ParameterId], at_parameter: usize);
 
     // TODO pc and values have known length
     /// Push and then add an interaction equality assertion to the solver.
-    fn push_and_assert_interaction<ValueId: Id, ParameterId: Id>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]);
+    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, pc: &[ParameterId], at_parameter: usize, values: &[ValueId]);
 
     /// Pop the given number of elements from the stack.
     fn pop(&mut self, num: u32);

@@ -15,7 +15,7 @@ use std::sync::atomic::Ordering::SeqCst;
 use crossbeam::utils::Backoff;
 
 use cm::{BitArray, CoverageMap};
-use common::{Id, sub_time_it, u_vec, UVec};
+use common::{Number, sub_time_it, u_vec, UVec};
 use ipog_single::constrained::{Extension, HorizontalExtension, VerticalExtension};
 use mca::{check_locations, DontCareArray, MCA};
 use sut::{ConstrainedSUT, Solver, SolverImpl};
@@ -24,7 +24,7 @@ use crate::{CACHE_MASK, IPOGData, Wrapper};
 use crate::threads_common::{Response, Work};
 use crate::unconstrained::threads::init_thread_pool;
 
-unsafe fn update_scores<ValueId: Id, const STRENGTH: usize>(
+unsafe fn update_scores<ValueId: Number, const STRENGTH: usize>(
     row_scores: &mut UVec<UVec<UVec<BitArray>>>,
     cm: &CoverageMap<ValueId, STRENGTH>,
     scores: &mut UVec<usize>,
@@ -40,7 +40,7 @@ unsafe fn update_scores<ValueId: Id, const STRENGTH: usize>(
 }
 
 #[inline]
-unsafe fn get_highscore_blacklisted<ValueId: Id>(
+unsafe fn get_highscore_blacklisted<ValueId: Number>(
     scores: &UVec<usize>,
     uses: &UVec<usize>,
     previous_value: ValueId,
@@ -71,7 +71,7 @@ unsafe fn get_highscore_blacklisted<ValueId: Id>(
     high_value
 }
 
-unsafe fn get_best_value<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+unsafe fn get_best_value<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     solver: &mut SolverImpl,
     at_parameter: usize,
     mut previous_value: ValueId,
@@ -114,7 +114,7 @@ unsafe fn get_best_value<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
 }
 
 
-pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     solver: &mut SolverImpl,
     senders: &[crossbeam::channel::Sender<Work<ValueId>>],
     _receivers: &[crossbeam::channel::Receiver<Response>],
@@ -213,12 +213,12 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Id, ParameterId: Id,
 
 
 /// The struct with the IPOG run method.
-pub struct ConstrainedMCIPOG<ValueId: Id, ParameterId: Id, const STRENGTH: usize> {
+pub struct ConstrainedMCIPOG<ValueId: Number, ParameterId: Number, const STRENGTH: usize> {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> ConstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> ConstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Run the constrained version of IPOG.
     pub fn run(sut: Arc<ConstrainedSUT<ValueId, ParameterId>>, mut solver: SolverImpl) -> MCA<ValueId> {
         let mca = MCA::<ValueId>::new_constrained::<ParameterId, SolverImpl, STRENGTH>(

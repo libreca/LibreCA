@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use z3::ast::Bool;
 
-use common::{Id, UVec};
+use common::{Number, UVec};
 
 use crate::expr::{BinOp, BOp, Eq, False, Not, True};
 

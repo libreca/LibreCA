@@ -12,7 +12,7 @@
 #![feature(generic_const_exprs)]
 #![deny(missing_docs, rustdoc::missing_crate_level_docs, future_incompatible)]
 
-use common::{Id, UVec};
+use common::{Number, UVec};
 
 #[cfg(test)]
 mod test_gen;
@@ -21,7 +21,7 @@ type DontCareArray = u64;
 
 /// This struct contains all the PCs (Parameter Combinations) for the entire generation.
 #[derive(Clone)]
-pub struct PCList<ParameterId: Id, const STRENGTH: usize>
+pub struct PCList<ParameterId: Number, const STRENGTH: usize>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// These are the actual PCs provided by this struct.
     ///
@@ -44,7 +44,7 @@ pub struct PCList<ParameterId: Id, const STRENGTH: usize>
     pub sizes: UVec<usize>,
 }
 
-impl<ParameterId: Id, const STRENGTH: usize>
+impl<ParameterId: Number, const STRENGTH: usize>
 PCList<ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     /// Create a new [PCList] struct for the given parameter_count.

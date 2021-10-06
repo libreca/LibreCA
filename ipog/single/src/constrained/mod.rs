@@ -11,13 +11,13 @@
 use std::marker::PhantomData;
 
 use cm::{BIT_MASK, BIT_SHIFT, BitArray, CoverageMap, get_highscore_blacklisted};
-use common::{Id, sub_time_it, u_vec, UVec, ValueGenerator};
+use common::{Number, sub_time_it, u_vec, UVec, ValueGenerator};
 use mca::{check_locations, DontCareArray, MCA};
 use pc_list::PCList;
 use sut::{ConstrainedSUT, Solver};
 
 /// This trait allows for the switching of various IPOG extension methods.
-pub trait Extension<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub trait Extension<ValueId: Number, ParameterId: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Used for debugging purposes.
     const NAME: &'static str;
 
@@ -36,7 +36,7 @@ pub trait Extension<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [
 /// Do not do anything for the extension.
 pub struct NOOPExtension<const STRENGTH: usize>;
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     const NAME: &'static str = "NOOP";
 
     unsafe fn extend<'a, S: Solver<'a>>(
@@ -52,8 +52,8 @@ impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> Extension<ValueId, Par
 
 /// Run and time the extension if the `sub-time` feature is set. Runs the extension if the feature is not set.
 pub struct TimedExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
@@ -63,8 +63,8 @@ pub struct TimedExtension<
 }
 
 impl<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize,
 > Extension<ValueId, ParameterId, STRENGTH>
@@ -98,8 +98,8 @@ for TimedExtension<ValueId, ParameterId, SubExtension, STRENGTH> where [(); STRE
 
 /// The struct implementing the HorizontalExtension for the constrained version of IPOG.
 pub struct HorizontalExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     value_id: PhantomData<ValueId>,
@@ -107,7 +107,7 @@ pub struct HorizontalExtension<
 }
 
 /// The HorizontalExtension for the constrained version of IPOG.
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 HorizontalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     unsafe fn get_best_value<'a, S: Solver<'a>>(
@@ -153,7 +153,7 @@ HorizontalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [
     }
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 Extension<ValueId, ParameterId, STRENGTH>
 for HorizontalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -230,15 +230,15 @@ for HorizontalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]
 
 /// The VerticalExtension for the constrained version of IPOG.
 pub struct VerticalExtension<
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 VerticalExtension<ValueId, ParameterId, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -359,7 +359,7 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
     }
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize>
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 Extension<ValueId, ParameterId, STRENGTH>
 for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
@@ -461,8 +461,8 @@ for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:,
 /// Filter the [CoverageMap]. Sets all disallowed interactions as covered.
 pub unsafe fn filter_map<
     'a,
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     S: Solver<'a>,
     const STRENGTH: usize,
 >(
@@ -533,8 +533,8 @@ pub unsafe fn filter_map<
 /// The struct with the IPOG run method.
 pub struct ConstrainedIPOG<
     'a,
-    ValueId: Id,
-    ParameterId: Id,
+    ValueId: Number,
+    ParameterId: Number,
     S: Solver<'a>,
     HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>,
     VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>,
@@ -550,7 +550,7 @@ pub struct ConstrainedIPOG<
 }
 
 impl<
-    'a, ValueId: Id, ParameterId: Id, S: Solver<'a>,
+    'a, ValueId: Number, ParameterId: Number, S: Solver<'a>,
     HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>,
     VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>,
     const STRENGTH: usize> ConstrainedIPOG<'a, ValueId, ParameterId, S, HorizontalExtension, VerticalExtension, STRENGTH>

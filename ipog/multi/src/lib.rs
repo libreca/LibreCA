@@ -25,7 +25,7 @@ use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
 
 use cm::{BitArray, CoverageMap};
-use common::{Id, u_vec, UVec};
+use common::{Number, u_vec, UVec};
 use mca::MCA;
 use pc_list::PCList;
 
@@ -52,7 +52,7 @@ pub(crate) const CACHE_MASK: usize = CACHE_SIZE - 1;
 pub(crate) const CONSTRAINTS_SWITCH: usize = 40;
 
 /// This is the data passed to the new threads.
-pub struct IPOGData<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub struct IPOGData<ValueId: Number, ParameterId: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// The number of worker threads that work on the solution.
     pub thread_count: usize,
 
@@ -93,7 +93,7 @@ pub struct IPOGData<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [
     pub cm: CoverageMap<ValueId, STRENGTH>,
 }
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> IPOGData<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> IPOGData<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Create a new struct for the given parameters.
     pub fn new(parameters: UVec<ValueId>, constraints: usize) -> Self {
         let pc_list = PCList::new(parameters.len());
@@ -152,14 +152,14 @@ impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> IPOGData<ValueId, Para
 ///
 /// It allows for concurrent writes to the data without any checks, so it is super unsafe.
 /// Do not use this if you care about your sanity.
-pub struct Wrapper<ValueId: Id, ParameterId: Id, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub struct Wrapper<ValueId: Number, ParameterId: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     data: UnsafeCell<IPOGData<ValueId, ParameterId, STRENGTH>>,
 }
 
 // It is ''safe'' to move this to other threads...
-unsafe impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> Sync for Wrapper<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {}
+unsafe impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> Sync for Wrapper<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {}
 
-impl<ValueId: Id, ParameterId: Id, const STRENGTH: usize> Wrapper<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> Wrapper<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Create an [Arc], which wraps around this wrapper, which wraps around the [IPOGData].
     ///
     /// The argument is passed directly to [IPOGData::new] to construct a new instance of the data struct.

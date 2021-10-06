@@ -7,7 +7,7 @@
 use test_utils::Walker;
 
 use sut::{ConstrainedSUT, MiniSatSolver, parse_constrained, Solver, Z3Solver};
-use common::Id;
+use common::Number;
 
 #[test]
 fn test_benchmarks() {
@@ -44,7 +44,7 @@ fn check_benchmark(result: ConstrainedSUT<usize, usize>) {
     }
 }
 
-fn check_benchmark_p<ParameterId: Id>(result: ConstrainedSUT<usize, usize>) {
+fn check_benchmark_p<ParameterId: Number>(result: ConstrainedSUT<usize, usize>) {
     if result.sub_sut.values_fit::<u8>().is_ok() {
         check_benchmark_pv::<u8, ParameterId>(result.mutate());
     } else if result.sub_sut.values_fit::<u16>().is_ok() {
@@ -60,7 +60,7 @@ fn check_benchmark_p<ParameterId: Id>(result: ConstrainedSUT<usize, usize>) {
     }
 }
 
-fn check_benchmark_pv<ValueId: Id, ParameterId: Id>(mut result: ConstrainedSUT<ValueId, ParameterId>) {
+fn check_benchmark_pv<ValueId: Number, ParameterId: Number>(mut result: ConstrainedSUT<ValueId, ParameterId>) {
     let row = vec![ValueId::default(); 100];
 
     assert_ne!(result.sub_sut.parameters.len(), 0);

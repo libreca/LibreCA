@@ -8,7 +8,7 @@ use std::collections::HashMap;
 
 use minisat::{Bool, Solver};
 
-use common::{Id, UVec};
+use common::{Number, UVec};
 
 use crate::expr::{BinOp, BOp, Eq, False, Not, True};
 

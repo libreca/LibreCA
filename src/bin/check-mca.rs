@@ -17,7 +17,7 @@ use std::path::PathBuf;
 
 use common::DONT_CARE_TEXT;
 use libreca::cm::{BIT_MASK, BIT_SHIFT};
-use libreca::common::{Id, u_vec, UVec, ValueGenerator};
+use libreca::common::{Number, u_vec, UVec, ValueGenerator};
 use libreca::main;
 use libreca::sut::{ConstrainedSUT, Solver, SolverImpl, SUT};
 
@@ -35,14 +35,14 @@ impl Display for FakeSolver {
 impl<'i> Solver<'i> for FakeSolver {
     type Init = ();
     fn default_init() -> Self::Init { () }
-    fn new<ValueId: Id, ParameterId: Id>(_sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &Self::Init) -> Self { Self }
+    fn new<ValueId: Number, ParameterId: Number>(_sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &Self::Init) -> Self { Self }
     #[inline(always)]
     fn check(&mut self) -> bool { true }
     fn push(&mut self) {}
-    fn push_and_assert_eq<ValueId: Id, ParameterId: Id>(&mut self, _parameter_id: ParameterId, _value_id: ValueId) {}
-    fn push_and_assert_row<ValueId: Id>(&mut self, _row: &[ValueId]) {}
-    fn push_and_assert_row_masked<ValueId: Id, ParameterId: Id>(&mut self, _row: &[ValueId], _pc: &[ParameterId], _at_parameter: usize) {}
-    fn push_and_assert_interaction<ValueId: Id, ParameterId: Id>(&mut self, _pc: &[ParameterId], _at_parameter: usize, _values: &[ValueId]) {}
+    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, _parameter_id: ParameterId, _value_id: ValueId) {}
+    fn push_and_assert_row<ValueId: Number>(&mut self, _row: &[ValueId]) {}
+    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, _row: &[ValueId], _pc: &[ParameterId], _at_parameter: usize) {}
+    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, _pc: &[ParameterId], _at_parameter: usize, _values: &[ValueId]) {}
     fn pop(&mut self, _num: u32) {}
     fn pop_all(&mut self, _num: u32) {}
 }
@@ -55,7 +55,7 @@ fn ioe<V>(result: std::io::Result<V>) -> Result<V, String> {
 /// Does the actual checking of the MCA.
 ///
 /// Call with the [FakeSolver] to check SUTs without constraints.
-fn check_mca<'a, S: Solver<'a>, ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+fn check_mca<'a, S: Solver<'a>, ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     mut sut: ConstrainedSUT<ValueId, ParameterId>, output_path: PathBuf, solver_init: &'a S::Init,
 ) -> Result<(), String> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     let mut lines = BufReader::new(ioe(File::open(output_path))?).lines().enumerate().skip_while(|(_, l)| match l {
@@ -146,7 +146,7 @@ fn check_mca<'a, S: Solver<'a>, ValueId: Id, ParameterId: Id, const STRENGTH: us
 }
 
 /// This is the method checking MCAs for SUTs without constraints.
-fn unconstrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+fn unconstrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     sut: SUT<ValueId, ParameterId>, output_path: PathBuf,
 ) -> Result<(), String> where [(); STRENGTH + 1]:, [(); { STRENGTH + 1 } - 1]:, [(); { STRENGTH + 1 } - 2]: {
     let constrained_sut = ConstrainedSUT::wrap_sut(sut);
@@ -155,7 +155,7 @@ fn unconstrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
 }
 
 /// This is the method checking MCAs for SUTs using constraints.
-fn constrained<ValueId: Id, ParameterId: Id, const STRENGTH: usize>(
+fn constrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
     constrained_sut: ConstrainedSUT<ValueId, ParameterId>, output_path: PathBuf,
 ) -> Result<(), String> where [(); STRENGTH + 1]:, [(); { STRENGTH + 1 } - 1]:, [(); { STRENGTH + 1 } - 2]: {
     let solver_init = SolverImpl::default_init();

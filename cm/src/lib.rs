@@ -15,7 +15,7 @@
 
 use std::cmp::max;
 
-use common::{Id, u_vec, UVec};
+use common::{Number, u_vec, UVec};
 use pc_list::PCList;
 
 #[cfg(test)]
@@ -46,7 +46,7 @@ pub const DONT_CARES_FOR_NAIVE: u32 = 2;
 /// Ties are solved by selecting the least used value.
 /// If a tie persists then the `previous_value` is used to determine the best scoring value "closest" to this value (incrementing and cycling).
 #[inline]
-pub unsafe fn get_highscore<ValueId: Id>(
+pub unsafe fn get_highscore<ValueId: Number>(
     scores: &UVec<UVec<BitArray>>,
     uses: &UVec<usize>,
     mut previous_value: ValueId,
@@ -74,7 +74,7 @@ pub unsafe fn get_highscore<ValueId: Id>(
 
 /// Get the highest scoring value while skipping the blacklisted values.
 #[inline]
-pub unsafe fn get_highscore_blacklisted<ValueId: Id>(
+pub unsafe fn get_highscore_blacklisted<ValueId: Number>(
     scores: &UVec<UVec<BitArray>>,
     uses: &UVec<usize>,
     previous_value: ValueId,
@@ -125,7 +125,7 @@ pub unsafe fn get_highscore_blacklisted<ValueId: Id>(
 /// unsafe { coverage_map.set_zero_covered() };
 /// ```
 #[derive(Default, Clone)]
-pub struct CoverageMap<ValueId: Id, const STRENGTH: usize>
+pub struct CoverageMap<ValueId: Number, const STRENGTH: usize>
     where [(); STRENGTH - 1]: {
     /// This is the collection of bit arrays.
     pub map: UVec<BitArray>,
@@ -148,14 +148,14 @@ pub struct CoverageMap<ValueId: Id, const STRENGTH: usize>
     value_choices: ValueId,
 }
 
-impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Create a new [CoverageMap] for the provided parameters.
     ///
     /// It is assumed that the provided [PCList] is created using the same parameters.
     ///
     /// Memory allocation is performed in this method.
     /// Consequent calls to methods of the [CoverageMap] should require any new allocation.
-    pub fn new<ParameterId: Id>(
+    pub fn new<ParameterId: Number>(
         parameters: UVec<ValueId>,
         pc_list: &PCList<ParameterId, STRENGTH>,
     ) -> Self {
@@ -248,7 +248,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Get the list of indices covered by each value if it where chosen.
     #[inline]
-    pub unsafe fn get_high_score<ParameterId: Id>(
+    pub unsafe fn get_high_score<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         pc_list_len: usize,
@@ -260,7 +260,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Get the list of indices covered by each value if it where chosen for the specified PCs.
     #[inline]
-    pub unsafe fn get_high_score_sub<ParameterId: Id>(
+    pub unsafe fn get_high_score_sub<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -279,7 +279,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     ///
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     #[inline]
-    pub fn get_high_score_masked<ParameterId: Id>(
+    pub fn get_high_score_masked<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         pc_list_len: usize,
@@ -295,7 +295,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     ///
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     #[inline]
-    pub fn get_high_score_masked_sub<ParameterId: Id>(
+    pub fn get_high_score_masked_sub<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -320,7 +320,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     /// If the number of dont-cares is equal to or lower than [DONT_CARES_FOR_NAIVE] then no bit arrays are used.
     #[inline]
-    pub fn get_high_score_masked_triple<ParameterId: Id>(
+    pub fn get_high_score_masked_triple<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         pc_list_len: usize,
@@ -337,7 +337,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     /// If the number of dont-cares is equal to or lower than [DONT_CARES_FOR_NAIVE] then no bit arrays are used.
     #[inline]
-    pub fn get_high_score_masked_triple_sub<ParameterId: Id>(
+    pub fn get_high_score_masked_triple_sub<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -369,7 +369,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     /// This method will calculate the score while using the bitmasks to skip PCs with don't-cares
     #[inline]
     #[allow(dead_code)] // used in benchmarks
-    pub unsafe fn get_high_score_masked_checked<ParameterId: Id>(
+    pub unsafe fn get_high_score_masked_checked<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         pc_list_len: usize,
@@ -384,7 +384,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     ///
     /// This method will calculate the score while using the bitmasks to skip PCs with don't-cares
     #[inline]
-    pub unsafe fn get_high_score_masked_checked_sub<ParameterId: Id>(
+    pub unsafe fn get_high_score_masked_checked_sub<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -405,7 +405,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     /// This method will calculate the score while skipping all dont-care checks. Use only if the row does not contain dont-cares.
     #[inline]
     #[allow(dead_code)] // used in benchmarks
-    pub unsafe fn get_high_score_masked_unchecked<ParameterId: Id>(
+    pub unsafe fn get_high_score_masked_unchecked<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         pc_list_len: usize,
@@ -419,7 +419,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     ///
     /// This method will calculate the score while skipping all dont-care checks. Use only if the row does not contain dont-cares.
     #[inline]
-    pub unsafe fn get_high_score_masked_unchecked_sub<ParameterId: Id>(
+    pub unsafe fn get_high_score_masked_unchecked_sub<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -434,7 +434,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Get the list of indices covered by each of the specified values if it where chosen for the specified PCs.
     #[inline]
-    pub unsafe fn get_high_score_sub_values_limited<ParameterId: Id>(
+    pub unsafe fn get_high_score_sub_values_limited<ParameterId: Number>(
         &self,
         pc_list: &PCList<ParameterId, STRENGTH>,
         row: &[ValueId],
@@ -514,7 +514,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Set all the interactions in the row as covered.
     #[inline]
-    pub unsafe fn set_covered_row_simple<ParameterId: Id>(
+    pub unsafe fn set_covered_row_simple<ParameterId: Number>(
         &mut self,
         at_parameter: usize,
         pc_list: &PCList<ParameterId, STRENGTH>,
@@ -526,7 +526,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Set the interactions of the specified PCs in the row as covered.
     #[inline]
-    pub unsafe fn set_covered_row_simple_sub<ParameterId: Id>(
+    pub unsafe fn set_covered_row_simple_sub<ParameterId: Number>(
         &mut self,
         at_parameter: usize,
         pc_list: &PCList<ParameterId, STRENGTH>,
@@ -587,7 +587,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
 
     /// Get the base index for an interaction given a parameter_combination and a row.
     #[inline]
-    pub unsafe fn get_base_index<ParameterId: Id>(
+    pub unsafe fn get_base_index<ParameterId: Number>(
         &self,
         pc_id: usize,
         pc_list: &PCList<ParameterId, STRENGTH>,
@@ -620,7 +620,7 @@ impl<ValueId: Id, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> where [(
     /// This version does not check if the values are `don't-cares`.
     /// Use [CoverageMap::get_base_index] instead if you are not sure whether the values at the parameters used are `don't-cares`.
     #[inline]
-    pub unsafe fn get_base_index_unchecked<ParameterId: Id>(
+    pub unsafe fn get_base_index_unchecked<ParameterId: Number>(
         &self,
         pc_id: usize,
         pc_list: &PCList<ParameterId, STRENGTH>,

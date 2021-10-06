@@ -7,7 +7,7 @@
 use test::Bencher;
 
 use cm::CoverageMap;
-use common::{Id, u_vec, UVec};
+use common::{Number, u_vec, UVec};
 use mca::MCA;
 use pc_list::PCList;
 

@@ -10,42 +10,14 @@
 #![feature(adt_const_params)]
 #![feature(generic_const_exprs)]
 
-use std::fmt::{Display, Formatter};
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 
-use common::DONT_CARE_TEXT;
 use libreca::cm::{BIT_MASK, BIT_SHIFT};
-use libreca::common::{Number, u_vec, UVec, ValueGenerator};
+use libreca::common::{DONT_CARE_TEXT, Number, u_vec, UVec, ValueGenerator};
 use libreca::main;
-use libreca::sut::{ConstrainedSUT, Solver, SolverImpl, SUT};
-
-/// This solver does not solve, but instead confirms validity whatever the input.
-///
-/// To be used for checking SUTs without constriants.
-struct FakeSolver;
-
-impl Display for FakeSolver {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str("<FakeSolver>")
-    }
-}
-
-impl<'i> Solver<'i> for FakeSolver {
-    type Init = ();
-    fn default_init() -> Self::Init { () }
-    fn new<ValueId: Number, ParameterId: Number>(_sut: &ConstrainedSUT<ValueId, ParameterId>, _args: &Self::Init) -> Self { Self }
-    #[inline(always)]
-    fn check(&mut self) -> bool { true }
-    fn push(&mut self) {}
-    fn push_and_assert_eq<ValueId: Number, ParameterId: Number>(&mut self, _parameter_id: ParameterId, _value_id: ValueId) {}
-    fn push_and_assert_row<ValueId: Number>(&mut self, _row: &[ValueId]) {}
-    fn push_and_assert_row_masked<ValueId: Number, ParameterId: Number>(&mut self, _row: &[ValueId], _pc: &[ParameterId], _at_parameter: usize) {}
-    fn push_and_assert_interaction<ValueId: Number, ParameterId: Number>(&mut self, _pc: &[ParameterId], _at_parameter: usize, _values: &[ValueId]) {}
-    fn pop(&mut self, _num: u32) {}
-    fn pop_all(&mut self, _num: u32) {}
-}
+use libreca::sut::{ConstrainedSUT, FakeSolver, Solver, SolverImpl, SUT};
 
 /// Converts an [std::io::Error] to a [String].
 fn ioe<V>(result: std::io::Result<V>) -> Result<V, String> {

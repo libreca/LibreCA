@@ -78,6 +78,7 @@ use std::path::Path;
 use common::{Number, UVec};
 use constraints::find_problem;
 pub use constraints::solver::Solver;
+pub use constraints::solver_fake::FakeSolver;
 #[cfg(feature = "constraints-minisat")]
 pub use constraints::solver_minisat::MiniSatSolver;
 pub use constraints::solver_not_implemented::NotASolver;

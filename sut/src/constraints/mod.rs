@@ -15,6 +15,7 @@ pub(crate) mod solver_minisat;
 pub(crate) mod solver_z3;
 
 pub(crate) mod solver_not_implemented;
+pub(crate) mod solver_fake;
 
 
 pub(crate) fn find_problem<'i, Solver: solver::Solver<'i>, ValueId: Number>(solver: &mut Solver, row: &[ValueId], mut start: usize, mut end: usize) -> usize {

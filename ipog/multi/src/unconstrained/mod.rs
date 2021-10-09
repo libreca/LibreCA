@@ -15,7 +15,7 @@ use crossbeam::utils::Backoff;
 use cm::{BitArray, CoverageMap};
 use common::{Number, sub_time_it, time_it, u_vec, UVec};
 use ipog_single::unconstrained::{Extension, HorizontalExtension, VerticalExtension};
-use mca::{check_locations, DontCareArray, MCA};
+use mca::{check_locations, MCA};
 use sut::SUT;
 use threads::init_thread_pool;
 
@@ -70,10 +70,10 @@ unsafe fn get_high_score_and_update<ValueId: Number, const STRENGTH: usize>(
 }
 
 
-pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
+pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>(
     senders: &[crossbeam::channel::Sender<Work<ValueId>>],
     _receivers: &[crossbeam::channel::Receiver<Response>],
-    ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>,
+    ipog_data: &mut IPOGData<ValueId, ParameterId, LocationsType, STRENGTH>,
     at_parameter: usize,
 ) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     ipog_data.at_row_main.store(0, SeqCst);
@@ -82,7 +82,7 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId:
         sender.send(Work::NextParameter).unwrap();
     }
 
-    let dont_care_mask: DontCareArray = !(1 << at_parameter as DontCareArray);
+    let dont_care_mask = !LocationsType::bit(at_parameter);
     let mut previous_value = ValueId::default();
     let value_choices = ipog_data.parameters[at_parameter];
     let mut uses = u_vec![0; value_choices.as_usize()];
@@ -150,23 +150,24 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId:
 }
 
 /// The toplevel of the IPOG method.
-pub struct UnconstrainedMCIPOG<ValueId: Number, ParameterId: Number, const STRENGTH: usize> {
+pub struct UnconstrainedMCIPOG<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize> {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 }
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> UnconstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize> UnconstrainedMCIPOG<ValueId, ParameterId, LocationsType, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Performs the IPOG algorithm using the specified extension types.
-    pub fn run(sut: &SUT<ValueId, ParameterId>) -> MCA<ValueId> {
+    pub fn run(sut: &SUT<ValueId, ParameterId>) -> MCA<ValueId, LocationsType> {
         if STRENGTH == sut.parameters.len() {
-            return MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
+            return MCA::<ValueId, LocationsType>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
         }
 
-        let wrapper = Wrapper::<ValueId, ParameterId, STRENGTH>::new(sut.parameters.clone(), 0);
+        let wrapper = Wrapper::<ValueId, ParameterId, LocationsType, STRENGTH>::new(sut.parameters.clone(), 0);
         let (senders, receivers) = time_it!(init_thread_pool(wrapper.clone()), "T init");
         let ipog_data = unsafe { wrapper.get_data() };
 
-        ipog_data.mca = MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
+        ipog_data.mca = MCA::<ValueId, LocationsType>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
 
         for at_parameter in STRENGTH..sut.parameters.len() {
             ipog_data.at_parameter_main.store(at_parameter, SeqCst);

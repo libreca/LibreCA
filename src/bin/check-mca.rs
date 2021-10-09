@@ -85,7 +85,7 @@ fn check_mca<'a, S: Solver<'a>, ValueId: Number, ParameterId: Number, const STRE
 
     let mut solver: S = sut.get_solver::<S>(solver_init);
 
-    let pc_list = libreca::pc_list::PCList::<ParameterId, STRENGTH>::new(sut.sub_sut.parameters.len());
+    let pc_list = libreca::pc_list::PCList::<ParameterId, u128, STRENGTH>::new(sut.sub_sut.parameters.len());
     let mut cm = libreca::cm::CoverageMap::<ValueId, STRENGTH>::new(sut.sub_sut.parameters.clone(), &pc_list);
     cm.initialise(at_parameter);
 

@@ -17,7 +17,7 @@ use crossbeam::utils::Backoff;
 use cm::{BitArray, CoverageMap};
 use common::{Number, sub_time_it, u_vec, UVec};
 use ipog_single::constrained::{Extension, HorizontalExtension, VerticalExtension};
-use mca::{check_locations, DontCareArray, MCA};
+use mca::{check_locations, MCA};
 use sut::{ConstrainedSUT, Solver, SolverImpl};
 
 use crate::{CACHE_MASK, IPOGData, Wrapper};
@@ -114,11 +114,11 @@ unsafe fn get_best_value<ValueId: Number, ParameterId: Number, const STRENGTH: u
 }
 
 
-pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
+pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>(
     solver: &mut SolverImpl,
     senders: &[crossbeam::channel::Sender<Work<ValueId>>],
     _receivers: &[crossbeam::channel::Receiver<Response>],
-    ipog_data: &mut IPOGData<ValueId, ParameterId, STRENGTH>,
+    ipog_data: &mut IPOGData<ValueId, ParameterId, LocationsType, STRENGTH>,
     at_parameter: usize,
 ) where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     ipog_data.at_row_main.store(0, SeqCst);
@@ -127,7 +127,7 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId:
         sender.send(Work::NextParameter).unwrap();
     }
 
-    let dont_care_mask: DontCareArray = !(1 << at_parameter as DontCareArray);
+    let dont_care_mask = !LocationsType::bit(at_parameter);
     let mut previous_value = ValueId::default();
     let value_choices = ipog_data.parameters[at_parameter];
     let mut uses = u_vec![0; value_choices.as_usize()];
@@ -213,15 +213,16 @@ pub(crate) unsafe fn horizontal_extension_threaded<ValueId: Number, ParameterId:
 
 
 /// The struct with the IPOG run method.
-pub struct ConstrainedMCIPOG<ValueId: Number, ParameterId: Number, const STRENGTH: usize> {
+pub struct ConstrainedMCIPOG<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize> {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 }
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> ConstrainedMCIPOG<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize> ConstrainedMCIPOG<ValueId, ParameterId, LocationsType, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Run the constrained version of IPOG.
-    pub fn run(sut: Arc<ConstrainedSUT<ValueId, ParameterId>>, mut solver: SolverImpl) -> MCA<ValueId> {
-        let mca = MCA::<ValueId>::new_constrained::<ParameterId, SolverImpl, STRENGTH>(
+    pub fn run(sut: Arc<ConstrainedSUT<ValueId, ParameterId>>, mut solver: SolverImpl) -> MCA<ValueId, LocationsType> {
+        let mca = MCA::<ValueId, LocationsType>::new_constrained::<ParameterId, SolverImpl, STRENGTH>(
             &sut.sub_sut.parameters,
             &mut solver,
         );
@@ -230,7 +231,7 @@ impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize> ConstrainedMCI
             return mca;
         }
 
-        let wrapper = Wrapper::<ValueId, ParameterId, STRENGTH>::new(sut.sub_sut.parameters.clone(), sut.count_constraints());
+        let wrapper = Wrapper::<ValueId, ParameterId, LocationsType, STRENGTH>::new(sut.sub_sut.parameters.clone(), sut.count_constraints());
         unsafe { replace(&mut (*wrapper.data.get()).mca, mca); }
         let (senders, receivers) = sub_time_it!(init_thread_pool(wrapper.clone()), "T init");
         let ipog_data = unsafe { &mut *wrapper.data.get() };

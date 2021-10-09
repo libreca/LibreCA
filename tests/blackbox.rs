@@ -137,9 +137,9 @@ fn test_features() {
     let mut libre_ca_sut = sut::parse_constrained(LIBRE_CA_SUT).unwrap();
     let solver_init = sut::SolverImpl::default_init();
     let mut mca = ipog_single::constrained::ConstrainedIPOG::<
-        usize, usize, sut::SolverImpl,
-        ipog_single::constrained::HorizontalExtension<usize, usize, 2>,
-        ipog_single::constrained::VerticalExtension<usize, usize, 2>,
+        usize, usize, u16, sut::SolverImpl,
+        ipog_single::constrained::HorizontalExtension<usize, usize, u16, 2>,
+        ipog_single::constrained::VerticalExtension<usize, usize, u16, 2>,
         2
     >::run(&mut libre_ca_sut, &solver_init);
 

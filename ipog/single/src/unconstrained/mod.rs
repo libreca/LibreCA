@@ -10,12 +10,12 @@ use std::marker::PhantomData;
 
 use cm::{BIT_MASK, BIT_SHIFT, BitArray, CoverageMap, get_highscore};
 use common::{Number, sub_time_it, u_vec, UVec, ValueGenerator};
-use mca::{check_locations, DontCareArray, MCA};
+use mca::{check_locations, MCA};
 use pc_list::PCList;
 use sut::SUT;
 
 /// This trait allows for the switching of various IPOG extension methods.
-pub trait Extension<ValueId: Number, ParameterId: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
+pub trait Extension<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Used for debugging purposes.
     const NAME: &'static str;
 
@@ -23,9 +23,9 @@ pub trait Extension<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
     unsafe fn extend(
         parameters: &UVec<ValueId>,
         at_parameter: usize,
-        pc_list: &PCList<ParameterId, STRENGTH>,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
-        mca: &mut MCA<ValueId>,
+        mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     );
 }
@@ -34,8 +34,8 @@ pub trait Extension<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
 /// Used while debugging and for comparison with implementations that have unimplemented extensions.
 pub struct NOOPExtension<const STRENGTH: usize>;
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
-Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH>
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
+Extension<ValueId, ParameterId, LocationsType, STRENGTH> for NOOPExtension<STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     const NAME: &'static str = "NOOP";
@@ -43,9 +43,9 @@ Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH>
     unsafe fn extend(
         _parameters: &UVec<ValueId>,
         _at_parameter: usize,
-        _pc_list: &PCList<ParameterId, STRENGTH>,
+        _pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         _pc_list_len: usize,
-        _mca: &mut MCA<ValueId>,
+        _mca: &mut MCA<ValueId, LocationsType>,
         _coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     ) {}
 }
@@ -54,21 +54,24 @@ Extension<ValueId, ParameterId, STRENGTH> for NOOPExtension<STRENGTH>
 pub struct TimedExtension<
     ValueId: Number,
     ParameterId: Number,
-    SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
+    LocationsType: Number,
+    SubExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     sub_extension: PhantomData<SubExtension>,
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 }
 
 impl<
     ValueId: Number,
     ParameterId: Number,
-    SubExtension: Extension<ValueId, ParameterId, STRENGTH>,
+    LocationsType: Number,
+    SubExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>,
     const STRENGTH: usize,
-> Extension<ValueId, ParameterId, STRENGTH>
-for TimedExtension<ValueId, ParameterId, SubExtension, STRENGTH>
+> Extension<ValueId, ParameterId, LocationsType, STRENGTH>
+for TimedExtension<ValueId, ParameterId, LocationsType, SubExtension, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     const NAME: &'static str = SubExtension::NAME;
@@ -76,9 +79,9 @@ for TimedExtension<ValueId, ParameterId, SubExtension, STRENGTH>
     unsafe fn extend(
         parameters: &UVec<ValueId>,
         at_parameter: usize,
-        pc_list: &PCList<ParameterId, STRENGTH>,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
-        mca: &mut MCA<ValueId>,
+        mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     ) {
         sub_time_it!(
@@ -99,15 +102,17 @@ for TimedExtension<ValueId, ParameterId, SubExtension, STRENGTH>
 pub struct HorizontalExtension<
     ValueId: Number,
     ParameterId: Number,
+    LocationsType: Number,
     const STRENGTH: usize,
 > {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 }
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
-Extension<ValueId, ParameterId, STRENGTH>
-for HorizontalExtension<ValueId, ParameterId, STRENGTH>
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
+Extension<ValueId, ParameterId, LocationsType, STRENGTH>
+for HorizontalExtension<ValueId, ParameterId, LocationsType, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     const NAME: &'static str = "B HE";
@@ -115,15 +120,15 @@ for HorizontalExtension<ValueId, ParameterId, STRENGTH>
     unsafe fn extend(
         parameters: &UVec<ValueId>,
         at_parameter: usize,
-        pc_list: &PCList<ParameterId, STRENGTH>,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
-        mca: &mut MCA<ValueId>,
+        mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     ) {
         debug_assert!(!mca.dont_care_locations.is_empty());
 
-        let dont_care_mask = !(1 << at_parameter as BitArray);
-        let no_dont_cares = !((!0) << at_parameter as BitArray);
+        let dont_care_mask = !LocationsType::bit(at_parameter);
+        let no_dont_cares = LocationsType::mask_low(at_parameter);
         let value_choices = parameters[at_parameter];
         let mut scores = u_vec![UVec::with_capacity(pc_list_len); value_choices.as_usize()];
         let mut previous_value: ValueId = ValueId::default();
@@ -139,6 +144,7 @@ for HorizontalExtension<ValueId, ParameterId, STRENGTH>
                 score.clear();
             }
 
+            // TODO Move to CM
             if cfg!(feature="score-double") {
                 coverage_map.get_high_score_masked(
                     pc_list,
@@ -190,14 +196,16 @@ for HorizontalExtension<ValueId, ParameterId, STRENGTH>
 pub struct VerticalExtension<
     ValueId: Number,
     ParameterId: Number,
+    LocationsType: Number,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 }
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
-VerticalExtension<ValueId, ParameterId, STRENGTH>
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
+VerticalExtension<ValueId, ParameterId, LocationsType, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     #[inline]
@@ -205,12 +213,12 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
         at_parameter: usize,
         pc: &[ParameterId; STRENGTH - 1],
         values: &[ValueId; STRENGTH],
-        pc_locations_tuple: &(DontCareArray, DontCareArray),
+        pc_locations_tuple: &(LocationsType, LocationsType),
         row: &mut [ValueId],
-        dont_care_locations: u64,
+        dont_care_locations: LocationsType,
     ) -> bool {
         let shared_dont_cares = dont_care_locations & pc_locations_tuple.0;
-        if shared_dont_cares == 0 {
+        if shared_dont_cares.none() {
             return false;
         }
 
@@ -240,15 +248,15 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
     #[inline]
     unsafe fn fit_in_row(
         at_parameter: usize,
-        pc_list: &PCList<ParameterId, STRENGTH>,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
-        mca: &mut MCA<ValueId>,
+        mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
         pc: &[ParameterId; STRENGTH - 1],
         values: &[ValueId; STRENGTH],
         pc_id: usize,
-        pc_locations_tuple: &(DontCareArray, DontCareArray),
-        dont_care_mask: DontCareArray,
+        pc_locations_tuple: &(LocationsType, LocationsType),
+        dont_care_mask: LocationsType,
     ) -> bool {
         // iterate over all rows of the MCA (but skip the first ones)
         for (ve_index, &row_id) in mca.vertical_extension_rows.iter().enumerate() {
@@ -270,7 +278,7 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
 
                 *dont_care_locations &= pc_locations_tuple.1;
 
-                if *dont_care_locations & dont_care_mask == 0 {
+                if (*dont_care_locations & dont_care_mask).none() {
                     mca.vertical_extension_rows.remove(ve_index);
                 }
 
@@ -293,18 +301,18 @@ VerticalExtension<ValueId, ParameterId, STRENGTH>
     }
 }
 
-impl<ValueId: Number, ParameterId: Number, const STRENGTH: usize>
-Extension<ValueId, ParameterId, STRENGTH>
-for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
+Extension<ValueId, ParameterId, LocationsType, STRENGTH>
+for VerticalExtension<ValueId, ParameterId, LocationsType, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     const NAME: &'static str = "B VE";
 
     unsafe fn extend(
         parameters: &UVec<ValueId>,
         at_parameter: usize,
-        pc_list: &PCList<ParameterId, STRENGTH>,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
-        mca: &mut MCA<ValueId>,
+        mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     ) {
         debug_assert!(
@@ -317,7 +325,7 @@ for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:,
 
         debug_assert!(mca.check_all(at_parameter));
 
-        let parameter_mask = 1 << at_parameter as BitArray;
+        let parameter_mask = LocationsType::bit(at_parameter);
 
         // Ignore the fact that pc_list should be bounded by the pc_list_len, because the uncovered interactions will be covered before getting to the out of bound PCs.
         for (pc_id, (pc, dont_care_locations)) in pc_list
@@ -333,7 +341,7 @@ for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:,
                 pc,
             );
             let mut map_index = (coverage_map.sizes[pc_id][0] * value_choices) + 1;
-            let mut pc_locations_option: Option<(DontCareArray, DontCareArray)> = None;
+            let mut pc_locations_option: Option<(LocationsType, LocationsType)> = None;
 
             'sup_index: loop {
                 let map_sub_index = map_index & BIT_MASK;
@@ -401,23 +409,25 @@ for VerticalExtension<ValueId, ParameterId, STRENGTH> where [(); STRENGTH - 1]:,
 pub struct UnconstrainedIPOG<
     ValueId: Number,
     ParameterId: Number,
-    HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>,
-    VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>,
+    LocationsType: Number,
+    HorizontalExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>,
+    VerticalExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>,
     const STRENGTH: usize,
 > where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     value_id: PhantomData<ValueId>,
     parameter_id: PhantomData<ParameterId>,
+    locations_type: PhantomData<LocationsType>,
 
     horizontal_extension: PhantomData<HorizontalExtension>,
     vertical_extension: PhantomData<VerticalExtension>,
 }
 
-impl<ValueId: Number, ParameterId: Number, HorizontalExtension: Extension<ValueId, ParameterId, STRENGTH>, VerticalExtension: Extension<ValueId, ParameterId, STRENGTH>, const STRENGTH: usize>
-UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, STRENGTH>
+impl<ValueId: Number, ParameterId: Number, LocationsType: Number, HorizontalExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>, VerticalExtension: Extension<ValueId, ParameterId, LocationsType, STRENGTH>, const STRENGTH: usize>
+UnconstrainedIPOG<ValueId, ParameterId, LocationsType, HorizontalExtension, VerticalExtension, STRENGTH>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// Performs the IPOG algorithm using the specified extension types.
-    pub fn run(sut: &mut SUT<ValueId, ParameterId>) -> MCA<ValueId> {
-        let mut mca = MCA::<ValueId>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
+    pub fn run(sut: &mut SUT<ValueId, ParameterId>) -> MCA<ValueId, LocationsType> {
+        let mut mca = MCA::<ValueId, LocationsType>::new_unconstrained::<ParameterId, STRENGTH>(&sut.parameters);
 
         if cfg!(debug_assertions) {
             println!("Initial: {:?}", mca.array.len());
@@ -427,7 +437,7 @@ UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, 
             return mca;
         }
 
-        let pc_list = sub_time_it!(PCList::<ParameterId, STRENGTH>::new(sut.parameters.len()), "PCList generation");
+        let pc_list = sub_time_it!(PCList::<ParameterId, LocationsType, STRENGTH>::new(sut.parameters.len()), "PCList generation");
         let mut coverage_map = CoverageMap::<ValueId, STRENGTH>::new(sut.parameters.clone(), &pc_list);
 
         for at_parameter in STRENGTH..sut.parameters.len() {
@@ -441,7 +451,7 @@ UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, 
             debug_assert!(mca.check_locations());
 
             unsafe {
-                TimedExtension::<ValueId, ParameterId, HorizontalExtension, STRENGTH>::extend(
+                TimedExtension::<ValueId, ParameterId, LocationsType, HorizontalExtension, STRENGTH>::extend(
                     &sut.parameters,
                     at_parameter,
                     &pc_list,
@@ -454,7 +464,7 @@ UnconstrainedIPOG<ValueId, ParameterId, HorizontalExtension, VerticalExtension, 
             if !coverage_map.is_covered() {
                 debug_assert!(mca.check_locations());
                 unsafe {
-                    TimedExtension::<ValueId, ParameterId, VerticalExtension, STRENGTH>::extend(
+                    TimedExtension::<ValueId, ParameterId, LocationsType, VerticalExtension, STRENGTH>::extend(
                         &sut.parameters,
                         at_parameter,
                         &pc_list,

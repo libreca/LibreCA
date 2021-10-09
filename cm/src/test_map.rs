@@ -32,7 +32,7 @@ lazy_static! {
 }
 
 struct Init {
-    pc_list: PCList<usize, STRENGTH>,
+    pc_list: PCList<usize, u64, STRENGTH>,
     pc_list_len: usize,
     cm: CoverageMap<usize, STRENGTH>,
     locations: UVec<BitArray>,
@@ -44,7 +44,7 @@ impl Init {
     fn borrow_pc(
         &self,
     ) -> (
-        &PCList<usize, STRENGTH>,
+        &PCList<usize, u64, STRENGTH>,
         usize,
         &CoverageMap<usize, STRENGTH>,
         &UVec<BitArray>,
@@ -84,7 +84,7 @@ mod test_indices {
     fn sub_test<const STRENGTH: usize>() where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
         let at_parameter = PARAMETERS.len() - 2;
         let parameters = UVec::from(PARAMETERS.to_vec());
-        let pc_list = PCList::<usize, STRENGTH>::new(PARAMETERS.len());
+        let pc_list = PCList::<usize, u64, STRENGTH>::new(PARAMETERS.len());
         let pc_list_len = pc_list.sizes[at_parameter - STRENGTH];
 
         let mut map = CoverageMap::<usize, STRENGTH>::new(parameters.clone(), &pc_list);
@@ -193,7 +193,7 @@ fn init_bench() {
         let parameter_count = PARAMETERS.len();
         let at_parameter = 11;
 
-        let pc_list = PCList::<usize, STRENGTH>::new(parameter_count);
+        let pc_list = PCList::<usize, u64, STRENGTH>::new(parameter_count);
         let pc_list_len = pc_list.sizes[at_parameter - STRENGTH];
         let mut cm = CoverageMap::<usize, STRENGTH>::new(UVec::from(PARAMETERS.to_vec()), &pc_list);
         cm.initialise(at_parameter);
@@ -240,7 +240,7 @@ fn bench_naive(bencher: &mut Bencher) {
     init_bench();
     let init_guard: MutexGuard<Option<Init>> = INIT.lock().unwrap();
     let (pc_list, pc_list_len, cm, _locations, scores, _no_dont_cares): (
-        &PCList<usize, STRENGTH>,
+        &PCList<usize, u64, STRENGTH>,
         usize,
         &CoverageMap<usize, STRENGTH>,
         &UVec<BitArray>,
@@ -265,7 +265,7 @@ fn bench_masked(bencher: &mut Bencher) {
     init_bench();
     let init_guard: MutexGuard<Option<Init>> = INIT.lock().unwrap();
     let (pc_list, pc_list_len, cm, locations, scores, no_dont_cares): (
-        &PCList<usize, STRENGTH>,
+        &PCList<usize, u64, STRENGTH>,
         usize,
         &CoverageMap<usize, STRENGTH>,
         &UVec<BitArray>,
@@ -295,7 +295,7 @@ fn bench_unchecked_and_naive(bencher: &mut Bencher) {
     init_bench();
     let init_guard: MutexGuard<Option<Init>> = INIT.lock().unwrap();
     let (pc_list, pc_list_len, cm, locations, scores, no_dont_cares): (
-        &PCList<usize, STRENGTH>,
+        &PCList<usize, u64, STRENGTH>,
         usize,
         &CoverageMap<usize, STRENGTH>,
         &UVec<BitArray>,
@@ -326,7 +326,7 @@ fn bench_unchecked_and_naive_count(bencher: &mut Bencher) {
     init_bench();
     let init_guard: MutexGuard<Option<Init>> = INIT.lock().unwrap();
     let (pc_list, pc_list_len, cm, locations, scores, no_dont_cares): (
-        &PCList<usize, STRENGTH>,
+        &PCList<usize, u64, STRENGTH>,
         usize,
         &CoverageMap<usize, STRENGTH>,
         &UVec<BitArray>,

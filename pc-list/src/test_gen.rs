@@ -11,7 +11,7 @@ use super::*;
 
 #[test]
 fn test_generate_pc_list_3_5() {
-    let result = PCList::<usize, 3>::new(5);
+    let result = PCList::<usize, u64, 3>::new(5);
     assert_eq!(result.pcs.len(), 6);
     assert_eq!(calculate_length(3, 4), 6);
 
@@ -23,7 +23,7 @@ fn test_generate_pc_list_3_5() {
 
 #[test]
 fn test_generate_pc_list_2_5() {
-    let result = PCList::<usize, 2>::new(5);
+    let result = PCList::<usize, u64, 2>::new(5);
     assert_eq!(calculate_length(2, 4), 4);
     assert_eq!(result.pcs.len(), 4);
 
@@ -32,7 +32,7 @@ fn test_generate_pc_list_2_5() {
 
 #[test]
 fn test_generate_pc_list_6_8() {
-    let result = PCList::<usize, 6>::new(8);
+    let result = PCList::<usize, u64, 6>::new(8);
     assert_eq!(result.pcs.len(), 21);
     assert_eq!(calculate_length(6, 7), 21);
 
@@ -65,7 +65,7 @@ fn test_generate_pc_list_6_8() {
 
 #[test]
 fn test_generate_pc_list_3_14() {
-    let result = PCList::<usize, 3>::new(14);
+    let result = PCList::<usize, u64, 3>::new(14);
     assert_eq!(result.pcs.len(), 78);
     assert_eq!(calculate_length(3, 13), 78);
 
@@ -157,7 +157,7 @@ fn test_generate_pc_list_3_14() {
 fn bench_generation_struct(bencher: &mut Bencher) {
     let max_pc_count = calculate_length(6, 37);
     bencher.iter(|| {
-        let pc_list = PCList::<usize, 6>::new(38);
+        let pc_list = PCList::<usize, u64, 6>::new(38);
         assert_eq!(pc_list.pcs.len(), max_pc_count);
     })
 }

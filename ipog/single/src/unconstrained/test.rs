@@ -19,7 +19,7 @@ fn test_coverage_map() {
         Err(e) => panic!("Parsing went wrong? {:?}", e),
     };
 
-    let mut mca = MCA::<usize>::new_unconstrained::<usize, 3>(&sut.parameters);
+    let mut mca = MCA::<usize, u64>::new_unconstrained::<usize, 3>(&sut.parameters);
 
     assert_eq!(mca.array.len(), 2 * 3 * 3);
 
@@ -62,7 +62,7 @@ fn test_big() {
         Err(e) => panic!("Parsing went wrong? {:?}", e),
     };
 
-    let mca = MCA::<usize>::new_unconstrained::<usize, 4>(&sut.parameters);
+    let mca = MCA::<usize, u64>::new_unconstrained::<usize, 4>(&sut.parameters);
 
     assert_eq!(mca.array.len(), 7 * 6 * 5 * 5);
 }

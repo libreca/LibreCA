@@ -17,11 +17,9 @@ use common::{Number, UVec};
 #[cfg(test)]
 mod test_gen;
 
-type DontCareArray = u64;
-
 /// This struct contains all the PCs (Parameter Combinations) for the entire generation.
 #[derive(Clone)]
-pub struct PCList<ParameterId: Number, const STRENGTH: usize>
+pub struct PCList<ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
     where [(); STRENGTH - 1]:, [(); STRENGTH - 2]: {
     /// These are the actual PCs provided by this struct.
     ///
@@ -29,14 +27,14 @@ pub struct PCList<ParameterId: Number, const STRENGTH: usize>
     pub pcs: UVec<[ParameterId; STRENGTH - 1]>,
 
     /// This vector contains the parameter locations for each PC.
-    pub locations: UVec<DontCareArray>,
+    pub locations: UVec<LocationsType>,
 
     /// This vector contains the number of PCs for each iteration of the IPOG algorithm.
     ///
     /// To get the current number of PCs:
     /// ```
     /// # use pc_list::PCList;
-    /// # let pc_list = PCList::<u8, 6>::new(10);
+    /// # let pc_list = PCList::<u8, u16, 6>::new(10);
     /// # let STRENGTH: usize = 6;
     /// # let at_parameter: usize = 7;
     /// let pc_list_len = pc_list.sizes[at_parameter - STRENGTH];
@@ -44,8 +42,8 @@ pub struct PCList<ParameterId: Number, const STRENGTH: usize>
     pub sizes: UVec<usize>,
 }
 
-impl<ParameterId: Number, const STRENGTH: usize>
-PCList<ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
+impl<ParameterId: Number, LocationsType: Number, const STRENGTH: usize>
+PCList<ParameterId, LocationsType, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
 {
     /// Create a new [PCList] struct for the given parameter_count.
     pub fn new(parameter_count: usize) -> Self {
@@ -53,17 +51,17 @@ PCList<ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
         let pcs_sizes_len = parameter_count - STRENGTH;
         let mut pc: UVec<[ParameterId; STRENGTH - 1]> = UVec::with_capacity(pc_list_len);
         let mut sizes: UVec<usize> = UVec::with_capacity(pcs_sizes_len);
-        let mut locations: UVec<DontCareArray> = UVec::with_capacity(pc_list_len);
+        let mut locations: UVec<LocationsType> = UVec::with_capacity(pc_list_len);
 
         if STRENGTH == 2 {
             pc.push([ParameterId::default(); STRENGTH - 1]);
-            let mut location = 1;
+            let mut location = LocationsType::from_usize(1);
             locations.push(location);
 
             for at_parameter in STRENGTH..parameter_count {
                 pc.push([ParameterId::from_usize(at_parameter - 1); STRENGTH - 1]);
                 sizes.push(pc.len());
-                location <<= 1;
+                location <<= LocationsType::from_usize(1);
                 locations.push(location);
             }
         } else {
@@ -112,10 +110,10 @@ PCList<ParameterId, STRENGTH> where [(); STRENGTH - 1]:, [(); STRENGTH - 2]:
         Self { pcs: pc, locations, sizes }
     }
 
-    fn pc_to_locations(pc: &[ParameterId; STRENGTH - 1]) -> DontCareArray {
-        let mut location: DontCareArray = 0;
+    fn pc_to_locations(pc: &[ParameterId; STRENGTH - 1]) -> LocationsType {
+        let mut location = LocationsType::default();
         for &parameter_id in pc.iter() {
-            location += 1 << parameter_id.as_usize() as DontCareArray;
+            location += LocationsType::bit(parameter_id.as_usize());
         }
         location
     }

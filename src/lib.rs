@@ -69,7 +69,7 @@ pub use writer;
 /// }
 ///
 /// // Create a main method which parses the cli arguments and calls the correct method accordingly.
-/// main!(main(unconstrained_method, constrained_method));
+/// main!(unconstrained_method, constrained_method);
 /// ```
 ///
 /// ## Provide your own SUTWrapper

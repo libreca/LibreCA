@@ -26,8 +26,9 @@ fn unconstrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
         unconstrained::UnconstrainedIPOG::<
             ValueId,
             ParameterId,
-            unconstrained::HorizontalExtension<ValueId, ParameterId, STRENGTH>,
-            unconstrained::VerticalExtension<ValueId, ParameterId, STRENGTH>,
+            u128,
+            unconstrained::HorizontalExtension<ValueId, ParameterId, u128, STRENGTH>,
+            unconstrained::VerticalExtension<ValueId, ParameterId, u128, STRENGTH>,
             STRENGTH,
         >::run(&mut sut),
         "Generation"
@@ -47,9 +48,10 @@ fn constrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
         constrained::ConstrainedIPOG::<
             ValueId,
             ParameterId,
+            u128,
             SolverImpl,
-            constrained::HorizontalExtension<ValueId, ParameterId, STRENGTH>,
-            constrained::VerticalExtension<ValueId, ParameterId, STRENGTH>,
+            constrained::HorizontalExtension<ValueId, ParameterId, u128, STRENGTH>,
+            constrained::VerticalExtension<ValueId, ParameterId, u128, STRENGTH>,
             STRENGTH,
         >::run(&mut sut, &solver_init),
         "Generation"

@@ -56,7 +56,7 @@ fn row_to_locations(row: &[usize]) -> BitArray {
 pub trait ScoreGetter {
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -71,7 +71,7 @@ impl ScoreGetter for Naive {
     #[inline]
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -90,7 +90,7 @@ impl ScoreGetter for Checked {
     #[inline]
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -109,7 +109,7 @@ impl ScoreGetter for Unchecked {
     #[inline]
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -128,7 +128,7 @@ impl ScoreGetter for SwitchDouble {
     #[inline]
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -152,7 +152,7 @@ impl ScoreGetter for SwitchTriple {
     #[inline]
     fn get_high_score(
         cm: &CoverageMap<usize, 6>,
-        pc_list: &PCList<usize, 6>,
+        pc_list: &PCList<usize, u64, 6>,
         pc_list_len: usize,
         row: &[usize],
         scores: &mut UVec<UVec<BitArray>>,
@@ -175,7 +175,7 @@ lazy_static! {
 }
 
 struct Init {
-    pc_list: PCList<usize, 6>,
+    pc_list: PCList<usize, u64, 6>,
     pc_list_len: usize,
     cm: CoverageMap<usize, 6>,
     scores: UVec<UVec<BitArray>>,
@@ -188,7 +188,7 @@ impl Init {
         assert_eq!(parameters.len() % 5, 0);
         assert!(rows.values().all(|r| r.0.len() == parameters.len()));
         let at_parameter = parameters.len() - 1;
-        let pc_list = PCList::<usize, 6>::new(parameters.len());
+        let pc_list = PCList::<usize, u64, 6>::new(parameters.len());
         let pc_list_len = pc_list.sizes[at_parameter - STRENGTH_CONSTANT];
         let mut cm = CoverageMap::<usize, 6>::new(parameters.clone(), &pc_list);
         cm.initialise(at_parameter);

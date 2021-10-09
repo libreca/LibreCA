@@ -32,10 +32,10 @@ pub(crate) const BASIC_MCA_ALT: [[u8; PARAMETERS.len()]; 4] = [
 
 #[derive(Clone)]
 pub(crate) struct TestData {
-    pub(crate) mca: MCA<u8>,
+    pub(crate) mca: MCA<u8, u64>,
     pub(crate) at_parameter: usize,
     pub(crate) value_choices: u8,
-    pub(crate) pc_list: PCList<u8, 6>,
+    pub(crate) pc_list: PCList<u8, u64, 6>,
     pub(crate) pc_list_len: usize,
     pub(crate) coverage_map: CoverageMap<u8, 6>,
     pub(crate) scores: UVec<UVec<u64>>,
@@ -69,7 +69,7 @@ impl TestData {
 }
 
 
-fn get_basic_mca(basic_mca: &[[u8; PARAMETERS.len()]; 4]) -> MCA<u8> {
+fn get_basic_mca(basic_mca: &[[u8; PARAMETERS.len()]; 4]) -> MCA<u8, u64> {
     let mut array = UVec::with_capacity(basic_mca.len());
     for row in basic_mca.iter() {
         array.push(UVec::from(row.to_vec()));

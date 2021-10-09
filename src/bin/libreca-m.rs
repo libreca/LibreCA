@@ -26,6 +26,7 @@ fn unconstrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
         ipog_multi::unconstrained::UnconstrainedMCIPOG::<
             ValueId,
             ParameterId,
+            u128,
             STRENGTH,
         >::run(&mut sut),
         "Generation"
@@ -47,6 +48,7 @@ fn constrained<ValueId: Number, ParameterId: Number, const STRENGTH: usize>(
         ipog_multi::constrained::ConstrainedMCIPOG::<
             ValueId,
             ParameterId,
+            u128,
             STRENGTH,
         >::run(sut.clone(), solver),
         "Generation"

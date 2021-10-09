@@ -30,7 +30,7 @@ fn bench_initial_single(bencher: &mut Bencher) {
     let parameters = UVec::from(PARAMETERS.to_vec());
 
     bencher.iter(|| {
-        assert_eq!(mca::MCA::<u8>::new_unconstrained::<u8, 6>(&parameters).array.len(), length);
+        assert_eq!(mca::MCA::<u8, u64>::new_unconstrained::<u8, 6>(&parameters).array.len(), length);
     })
 }
 
@@ -47,7 +47,7 @@ fn bench_initial_thread(bencher: &mut Bencher) {
     bencher.iter(|| {
         let mut mca = MCA::new_empty();
         unsafe {
-            crate::covering_array::new_reserved_mca::<u8, 6>(&parameters, &[], &mut mca);
+            crate::covering_array::new_reserved_mca::<u8, u64, 6>(&parameters, &[], &mut mca);
             assert_eq!(mca.array.len(), length);
             crate::unconstrained::threads::new_mca(0, &mut ipog_data);
             mca.array.set_len(end);
@@ -61,13 +61,13 @@ fn bench_initial_alloc(bencher: &mut Bencher) {
     let capacity = length * PARAMETERS.len() * 6;
 
     bencher.iter(|| {
-        let _mca = MCA::<u8> { array: UVec::with_capacity(capacity), dont_care_locations: UVec::with_capacity(capacity), vertical_extension_rows: UVec::with_capacity(capacity), new_row: UVec::with_capacity(PARAMETERS.len()) };
+        let _mca = MCA::<u8, u64> { array: UVec::with_capacity(capacity), dont_care_locations: UVec::with_capacity(capacity), vertical_extension_rows: UVec::with_capacity(capacity), new_row: UVec::with_capacity(PARAMETERS.len()) };
     })
 }
 
 #[test]
 fn uninitialised_mca() {
-    let mut mca = MCA::<u8> { array: UVec::with_capacity(100), dont_care_locations: UVec::with_capacity(100), vertical_extension_rows: UVec::with_capacity(0), new_row: UVec::with_capacity(0) };
+    let mut mca = MCA::<u8, u64> { array: UVec::with_capacity(100), dont_care_locations: UVec::with_capacity(100), vertical_extension_rows: UVec::with_capacity(0), new_row: UVec::with_capacity(0) };
     unsafe { mca.array.set_len(10); }
     let mut pointer = mca.array.as_mut_ptr();
     let row = u_vec![1, 2, 3, 4, 5];
@@ -110,9 +110,10 @@ fn bench_initial_1d(bencher: &mut Bencher) {
 #[bench]
 fn bench_initial_thread_init(bencher: &mut Bencher) {
     let length = mca_size();
+    let parameters = UVec::from(PARAMETERS.to_vec());
     bencher.iter(|| {
         let mut mca = MCA::new_empty();
-        unsafe { crate::covering_array::new_reserved_mca::<u8, 6>(&PARAMETERS, &[], &mut mca) };
+        unsafe { crate::covering_array::new_reserved_mca::<u8, u64, 6>(&parameters, &[], &mut mca) };
         assert_eq!(mca.array.len(), length);
         unsafe { mca.array.set_len(1) };
     })
@@ -122,12 +123,12 @@ fn bench_initial_thread_init(bencher: &mut Bencher) {
 #[bench]
 fn bench_initial_thread_full(bencher: &mut Bencher) {
     bencher.iter(|| {
-        let ipog_data_arc = Wrapper::<u8, u8, 5, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
+        let ipog_data_arc = Wrapper::<u8, u8, u64, 5, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
         let ipog_data = unsafe { &mut *ipog_data_arc.data.get() };
         ipog_data.thread_count = THREAD_COUNT;
 
         let (senders, receivers) = init_thread_pool(ipog_data_arc.clone());
-        unsafe { crate::covering_array::new_reserved_mca::<u8, 6>(&ipog_data.parameters, &senders, &mut ipog_data.mca) };
+        unsafe { crate::covering_array::new_reserved_mca::<u8, u64, 6>(&ipog_data.parameters, &senders, &mut ipog_data.mca) };
 
         for receiver in receivers {
             let _a = receiver.recv().unwrap();
@@ -139,7 +140,7 @@ fn bench_initial_thread_full(bencher: &mut Bencher) {
 #[bench]
 fn bench_initial_start_one_thread(bencher: &mut Bencher) {
     bencher.iter(|| {
-        let ipog_data_arc = Wrapper::<u8, u8, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
+        let ipog_data_arc = Wrapper::<u8, u8, u64, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
         let ipog_data = unsafe { &mut *ipog_data_arc.data.get() };
         ipog_data.thread_count = 1;
         let (_senders, _receivers) = init_thread_pool(ipog_data_arc.clone());
@@ -149,7 +150,7 @@ fn bench_initial_start_one_thread(bencher: &mut Bencher) {
 #[bench]
 fn bench_initial_start_threads(bencher: &mut Bencher) {
     bencher.iter(|| {
-        let ipog_data_arc = Wrapper::<u8, u8, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
+        let ipog_data_arc = Wrapper::<u8, u8, u64, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
         let (_senders, _receivers) = init_thread_pool(ipog_data_arc.clone());
     });
 }
@@ -157,6 +158,6 @@ fn bench_initial_start_threads(bencher: &mut Bencher) {
 #[bench]
 fn bench_initial_data_init(bencher: &mut Bencher) {
     bencher.iter(|| {
-        let _ipog_data_arc = Wrapper::<u8, u8, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
+        let _ipog_data_arc = Wrapper::<u8, u8, u64, 6>::new(UVec::from(PARAMETERS.to_vec()), 0);
     });
 }

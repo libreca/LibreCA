@@ -31,9 +31,9 @@ fn write_value<ValueId: Number, ParameterId: Number>(
 }
 
 /// Write the given [MCA] to the given filename.
-pub fn write_result<ValueId: Number, ParameterId: Number>(
+pub fn write_result<ValueId: Number, ParameterId: Number, LocationsType: Number>(
     sut: &SUT<ValueId, ParameterId>,
-    mca: MCA<ValueId>,
+    mca: MCA<ValueId, LocationsType>,
     filename: PathBuf,
 ) -> std::io::Result<()> {
     write_result_iterable(

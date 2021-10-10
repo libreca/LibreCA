@@ -5,6 +5,16 @@
 // modified, or distributed except according to those terms.
 
 //! This module provides the [CoverageMap] used during each iteration of IPOG.
+//!
+//! # Features
+//! This crate provides the following optional features:
+//!   * `score-single` Always use the naive scoring algorithm.
+//!   * `score-double` Switch between the bitwise scoring algorithm and unchecked algorithm when there are no don't-cares.
+//!
+//! If neither `score-single` or `score-double` are set then the algorithm uses one of the three algorithms:
+//!   * If no don't-cares are present: unchecked algorithm [cm::CoverageMap::get_high_score_masked_unchecked].
+//!   * If only a few don't-cares are present: naive algorithm [cm::CoverageMap::get_high_score].
+//!   * If more don't-cares are present: unchecked algorithm [cm::CoverageMap::get_high_score_masked].
 
 #![cfg_attr(test, feature(test))]
 #![allow(incomplete_features)]
@@ -248,7 +258,66 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
 
     /// Get the list of indices covered by each value if it where chosen.
     #[inline]
-    pub unsafe fn get_high_score<ParameterId: Number, LocationsType: Number>(
+    pub fn calculate_scores<ParameterId: Number, LocationsType: Number>(
+        &self,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
+        pc_list_len: usize,
+        row: &[ValueId],
+        dont_care_locations: LocationsType,
+        no_dont_cares: LocationsType,
+        scores: &mut UVec<UVec<BitArray>>,
+    ) {
+        self.calculate_scores_sub(pc_list, row, dont_care_locations, no_dont_cares, scores, 0, pc_list_len);
+    }
+
+    /// Get the list of indices covered by each value if it where chosen for the specified PCs.
+    #[inline]
+    pub fn calculate_scores_sub<ParameterId: Number, LocationsType: Number>(
+        &self,
+        pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
+        row: &[ValueId],
+        dont_care_locations: LocationsType,
+        no_dont_cares: LocationsType,
+        scores: &mut UVec<UVec<BitArray>>,
+        start: usize,
+        end: usize,
+    ) {
+        unsafe {
+            if cfg!(feature="score-double") {
+                self.get_high_score_masked_sub(
+                    pc_list,
+                    row,
+                    dont_care_locations,
+                    no_dont_cares,
+                    scores,
+                    start,
+                    end,
+                );
+            } else if cfg!(feature="score-single") {
+                self.get_high_score_sub(
+                    pc_list,
+                    row,
+                    scores,
+                    start,
+                    end,
+                );
+            } else {
+                self.get_high_score_masked_triple_sub(
+                    pc_list,
+                    row,
+                    dont_care_locations,
+                    no_dont_cares,
+                    scores,
+                    start,
+                    end,
+                );
+            }
+        }
+    }
+    /// Get the list of indices covered by each value if it where chosen.
+    #[inline]
+    #[allow(dead_code)] // used in benchmarks
+    pub(crate) unsafe fn get_high_score<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
@@ -260,7 +329,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
 
     /// Get the list of indices covered by each value if it where chosen for the specified PCs.
     #[inline]
-    pub unsafe fn get_high_score_sub<ParameterId: Number, LocationsType: Number>(
+    pub(crate) unsafe fn get_high_score_sub<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],
@@ -279,7 +348,8 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     ///
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     #[inline]
-    pub fn get_high_score_masked<ParameterId: Number, LocationsType: Number>(
+    #[allow(dead_code)] // used in benchmarks
+    pub(crate) fn get_high_score_masked<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
@@ -295,7 +365,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     ///
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     #[inline]
-    pub fn get_high_score_masked_sub<ParameterId: Number, LocationsType: Number>(
+    pub(crate) fn get_high_score_masked_sub<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],
@@ -320,7 +390,8 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     /// If the number of dont-cares is equal to or lower than [DONT_CARES_FOR_NAIVE] then no bit arrays are used.
     #[inline]
-    pub fn get_high_score_masked_triple<ParameterId: Number, LocationsType: Number>(
+    #[allow(dead_code)] // used in benchmarks
+    pub(crate) fn get_high_score_masked_triple<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
@@ -337,7 +408,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     /// This method will use the bit arrays to perform a slightly faster calculation of score.
     /// If the number of dont-cares is equal to or lower than [DONT_CARES_FOR_NAIVE] then no bit arrays are used.
     #[inline]
-    pub fn get_high_score_masked_triple_sub<ParameterId: Number, LocationsType: Number>(
+    pub(crate) fn get_high_score_masked_triple_sub<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],
@@ -369,7 +440,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     /// This method will calculate the score while using the bitmasks to skip PCs with don't-cares
     #[inline]
     #[allow(dead_code)] // used in benchmarks
-    pub unsafe fn get_high_score_masked_checked<ParameterId: Number, LocationsType: Number>(
+    pub(crate) unsafe fn get_high_score_masked_checked<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
@@ -384,7 +455,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     ///
     /// This method will calculate the score while using the bitmasks to skip PCs with don't-cares
     #[inline]
-    pub unsafe fn get_high_score_masked_checked_sub<ParameterId: Number, LocationsType: Number>(
+    pub(crate) unsafe fn get_high_score_masked_checked_sub<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],
@@ -405,7 +476,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     /// This method will calculate the score while skipping all dont-care checks. Use only if the row does not contain dont-cares.
     #[inline]
     #[allow(dead_code)] // used in benchmarks
-    pub unsafe fn get_high_score_masked_unchecked<ParameterId: Number, LocationsType: Number>(
+    pub(crate) unsafe fn get_high_score_masked_unchecked<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         pc_list_len: usize,
@@ -419,7 +490,7 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
     ///
     /// This method will calculate the score while skipping all dont-care checks. Use only if the row does not contain dont-cares.
     #[inline]
-    pub unsafe fn get_high_score_masked_unchecked_sub<ParameterId: Number, LocationsType: Number>(
+    pub(crate) unsafe fn get_high_score_masked_unchecked_sub<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],
@@ -434,7 +505,8 @@ impl<ValueId: Number, const STRENGTH: usize> CoverageMap<ValueId, STRENGTH> wher
 
     /// Get the list of indices covered by each of the specified values if it where chosen for the specified PCs.
     #[inline]
-    pub unsafe fn get_high_score_sub_values_limited<ParameterId: Number, LocationsType: Number>(
+    #[allow(dead_code)] // used in benchmarks
+    pub(crate) unsafe fn get_high_score_sub_values_limited<ParameterId: Number, LocationsType: Number>(
         &self,
         pc_list: &PCList<ParameterId, LocationsType, STRENGTH>,
         row: &[ValueId],

@@ -89,7 +89,7 @@ fn waste_time(test_data: &mut TestData, start: usize, end: usize, mut index: usi
         score.clear();
     }
 
-    unsafe { test_data.coverage_map.get_high_score_sub(&test_data.pc_list, test_data.mca.array[index].as_slice(), &mut test_data.scores, start, end); }
+    test_data.coverage_map.calculate_scores_sub(&test_data.pc_list, test_data.mca.array[index].as_slice(), test_data.mca.dont_care_locations[index], test_data.no_dont_cares, &mut test_data.scores, start, end);
 }
 
 #[bench]

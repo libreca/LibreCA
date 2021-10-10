@@ -9,15 +9,8 @@
 //! for both unconstrained Systems Under Test (SUT) and constrained SUTs.
 //!
 //! # Features
-//! This crate provides the following optional features:
+//! This crate provides the following optional feature:
 //!   * `filter-map` Mark interactions disallowed by the constraints as covered in the [cm::CoverageMap] before beginning the extensions.
-//!   * `score-single` Always use the naive scoring algorithm.
-//!   * `score-double` Switch between the bitwise scoring algorithm and unchecked algorithm when there are no don't-cares.
-//!
-//! If neither `score-single` or `score-double` are set then the algorithm uses one of the three algorithms:
-//!   * If no don't-cares are present: unchecked algorithm [cm::CoverageMap::get_high_score_masked_unchecked].
-//!   * If only a few don't-cares are present: naive algorithm [cm::CoverageMap::get_high_score].
-//!   * If more don't-cares are present: unchecked algorithm [cm::CoverageMap::get_high_score_masked].
 
 #![allow(incomplete_features)]
 #![feature(adt_const_params)]

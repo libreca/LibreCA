@@ -30,6 +30,7 @@ pub(crate) const BASIC_MCA_ALT: [[u8; PARAMETERS.len()]; 4] = [
     [!0, 1, !0, 2, 1, 1, 1, 1, 2, 0, 2, !0, 1, !0, !0],
 ];
 
+#[allow(dead_code)]
 #[derive(Clone)]
 pub(crate) struct TestData {
     pub(crate) mca: MCA<u8, u64>,
@@ -39,12 +40,12 @@ pub(crate) struct TestData {
     pub(crate) pc_list_len: usize,
     pub(crate) coverage_map: CoverageMap<u8, 6>,
     pub(crate) scores: UVec<UVec<u64>>,
+    pub(crate) no_dont_cares: u64,
 }
 
 impl TestData {
     pub(crate) fn new(parameters: &[u8; PARAMETERS.len()]) -> Self { Self::new_with_mca(parameters, &BASIC_MCA) }
     pub(crate) fn new_with_mca(parameters: &[u8; PARAMETERS.len()], basic_mca: &[[u8; PARAMETERS.len()]; 4]) -> Self {
-        let mca = get_basic_mca(basic_mca);
         let at_parameter = parameters.len() - 2;
         let value_choices = parameters[at_parameter];
 
@@ -54,16 +55,16 @@ impl TestData {
         let mut coverage_map = CoverageMap::new(UVec::from(parameters.to_vec()), &pc_list);
         coverage_map.initialise(at_parameter);
         unsafe { coverage_map.set_zero_covered(); }
-        let scores = u_vec![UVec::with_capacity(pc_list_len); value_choices as usize];
 
         TestData {
-            mca,
+            mca: get_basic_mca(basic_mca),
             at_parameter,
             value_choices,
             pc_list,
             pc_list_len,
             coverage_map,
-            scores,
+            scores: u_vec![UVec::with_capacity(pc_list_len); value_choices as usize],
+            no_dont_cares: <u64 as Number>::mask_low(at_parameter),
         }
     }
 }
@@ -78,16 +79,17 @@ fn get_basic_mca(basic_mca: &[[u8; PARAMETERS.len()]; 4]) -> MCA<u8, u64> {
     let mut dont_care_locations = UVec::with_capacity(basic_mca.len());
     for row in array.iter() {
         let mut locations = 0;
-        for value in row.iter().rev() {
-            if *value != u8::dont_care() {
-                locations += 1;
+        for (index, value) in row.iter().enumerate() {
+            if *value == u8::dont_care() {
+                locations += u64::bit(index);
             }
-            locations <<= 1;
         }
         dont_care_locations.push(locations);
     }
 
-    MCA { array, dont_care_locations, vertical_extension_rows: UVec::with_capacity(0), new_row: UVec::with_capacity(0) }
+    let result = MCA { array, dont_care_locations, vertical_extension_rows: UVec::with_capacity(0), new_row: UVec::with_capacity(0) };
+    debug_assert!(result.check_locations());
+    result
 }
 
 #[bench]
@@ -148,7 +150,7 @@ fn score_part(t: &mut TestData, start: usize, end: usize) {
         unsafe { score.set_len(0); }
     }
 
-    t.coverage_map.get_high_score_masked_triple_sub(&t.pc_list, t.mca.array[0].as_slice(), t.mca.dont_care_locations[0], !((!0) << t.at_parameter), &mut t.scores, start, end);
+    t.coverage_map.calculate_scores_sub(&t.pc_list, t.mca.array[0].as_slice(), t.mca.dont_care_locations[0], t.no_dont_cares, &mut t.scores, start, end);
 }
 
 
@@ -165,7 +167,7 @@ fn test_scores() {
                 score.clear();
             }
 
-            unsafe { t.coverage_map.get_high_score_sub(&t.pc_list, t.mca.array[row_id].as_slice(), &mut t.scores, start, end); }
+            t.coverage_map.calculate_scores_sub(&t.pc_list, t.mca.array[row_id].as_slice(), t.mca.dont_care_locations[row_id], t.no_dont_cares, &mut t.scores, start, end);
 
             for (score, indices) in row_scores.iter_mut().zip(t.scores.iter()) {
                 *score += indices.len();
@@ -173,12 +175,12 @@ fn test_scores() {
         }
     }
 
-    for (row, row_scores) in t.mca.array.iter().zip(scores.iter()) {
+    for ((row, &dont_care_locations), row_scores) in t.mca.array.iter().zip(t.mca.dont_care_locations.iter()).zip(scores.iter()) {
         for score in t.scores.iter_mut() {
             score.clear();
         }
 
-        unsafe { t.coverage_map.get_high_score(&t.pc_list, t.pc_list_len, row.as_slice(), &mut t.scores); }
+        t.coverage_map.calculate_scores(&t.pc_list, t.pc_list_len, row.as_slice(), dont_care_locations, t.no_dont_cares, &mut t.scores);
 
         for (score, indices) in row_scores.iter().zip(t.scores.iter()) {
             assert_eq!(*score, indices.len());

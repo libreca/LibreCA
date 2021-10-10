@@ -144,33 +144,14 @@ for HorizontalExtension<ValueId, ParameterId, LocationsType, STRENGTH>
                 score.clear();
             }
 
-            // TODO Move to CM
-            if cfg!(feature="score-double") {
-                coverage_map.get_high_score_masked(
-                    pc_list,
-                    pc_list_len,
-                    row,
-                    *dont_care_locations,
-                    no_dont_cares,
-                    &mut scores,
-                );
-            } else if cfg!(feature="score-single") {
-                coverage_map.get_high_score(
-                    pc_list,
-                    pc_list_len,
-                    row,
-                    &mut scores,
-                );
-            } else {
-                coverage_map.get_high_score_masked_triple(
-                    pc_list,
-                    pc_list_len,
-                    row,
-                    *dont_care_locations,
-                    no_dont_cares,
-                    &mut scores,
-                );
-            }
+            coverage_map.calculate_scores(
+                pc_list,
+                pc_list_len,
+                row,
+                *dont_care_locations,
+                no_dont_cares,
+                &mut scores,
+            );
 
             let value: ValueId = get_highscore(&scores, &uses, previous_value);
 

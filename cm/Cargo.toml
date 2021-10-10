@@ -11,3 +11,7 @@ pc-list = { path = "../pc-list", default-features = false }
 
 [dev-dependencies]
 lazy_static = "~1.4.0"
+
+[features]
+score-single = []
+score-double = []

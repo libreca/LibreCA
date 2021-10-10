@@ -14,5 +14,3 @@ sut = { path = "../../sut" }
 
 [features]
 filter-map = []
-score-single = []
-score-double = []

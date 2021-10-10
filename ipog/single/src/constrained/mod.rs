@@ -173,7 +173,8 @@ for HorizontalExtension<ValueId, ParameterId, LocationsType, STRENGTH> where [()
         mca: &mut MCA<ValueId, LocationsType>,
         coverage_map: &mut CoverageMap<ValueId, STRENGTH>,
     ) {
-        let dont_care_mask = LocationsType::from_usize(!(1 << at_parameter));
+        let dont_care_mask = !LocationsType::bit(at_parameter);
+        let no_dont_cares = LocationsType::mask_low(at_parameter);
 
         coverage_map.set_zero_covered();
         let mut previous_value = ValueId::default();
@@ -196,7 +197,7 @@ for HorizontalExtension<ValueId, ParameterId, LocationsType, STRENGTH> where [()
                 *b = false;
             }
 
-            coverage_map.get_high_score(&pc_list, pc_list_len, row, &mut scores);
+            coverage_map.calculate_scores(&pc_list, pc_list_len, row, *dont_care_locations, no_dont_cares, &mut scores);
 
             if scores.iter().all(UVec::is_empty) {
                 continue 'row;

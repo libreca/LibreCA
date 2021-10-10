@@ -48,8 +48,8 @@ impl FilterTestData {
             filtered,
         };
 
-        unsafe { result.td.coverage_map.get_high_score(&result.td.pc_list, result.td.pc_list_len, result.td.mca.array[result.row_previous].as_slice(), &mut result.scores_previous) };
-        unsafe { result.td.coverage_map.get_high_score(&result.td.pc_list, result.td.pc_list_len, result.td.mca.array[result.row_next].as_slice(), &mut result.scores_next) };
+        result.td.coverage_map.calculate_scores(&result.td.pc_list, result.td.pc_list_len, result.td.mca.array[result.row_previous].as_slice(), result.td.mca.dont_care_locations[result.row_previous], result.td.no_dont_cares, &mut result.scores_previous);
+        result.td.coverage_map.calculate_scores(&result.td.pc_list, result.td.pc_list_len, result.td.mca.array[result.row_next].as_slice(), result.td.mca.dont_care_locations[result.row_next], result.td.no_dont_cares, &mut result.scores_next);
         unsafe { result.td.coverage_map.set_indices(&result.scores_previous[result.value]) };
 
         result
@@ -173,7 +173,7 @@ fn cm_filter_zero_low(bencher: &mut Bencher) {
 }
 
 #[bench]
-fn cm_filter_remove_high(bencher: &mut Bencher) {
+fn m_filter_remove_high(bencher: &mut Bencher) {
     bench_filter(bencher, FilterTestData::high_filter(), filter_scores_cm_remove, true);
 }
 
@@ -270,24 +270,20 @@ fn filtered_cover_remove(bencher: &mut Bencher, ftd: FilterTestData) {
 #[bench]
 fn get_score_plain(bencher: &mut Bencher) {
     let mut td = TestData::new(&PARAMETERS);
-    unsafe { td.coverage_map.get_high_score(&td.pc_list, td.pc_list_len, td.mca.array[0].as_slice(), &mut td.scores) };
+    td.coverage_map.calculate_scores(&td.pc_list, td.pc_list_len, td.mca.array[0].as_slice(), td.mca.dont_care_locations[0], td.no_dont_cares, &mut td.scores);
     bencher.iter(|| {
-        for scores in td.scores.iter_mut() {
-            scores.clear();
-        }
-        unsafe { td.coverage_map.get_high_score(&td.pc_list, td.pc_list_len, td.mca.array[1].as_slice(), &mut td.scores) };
+        for scores in td.scores.iter_mut() { scores.clear(); }
+        td.coverage_map.calculate_scores(&td.pc_list, td.pc_list_len, td.mca.array[1].as_slice(), td.mca.dont_care_locations[1], td.no_dont_cares, &mut td.scores);
     });
 }
 
 #[bench]
 fn get_score_chosen(bencher: &mut Bencher) {
     let mut td = TestData::new(&PARAMETERS);
-    unsafe { td.coverage_map.get_high_score(&td.pc_list, td.pc_list_len, td.mca.array[0].as_slice(), &mut td.scores) };
+    td.coverage_map.calculate_scores(&td.pc_list, td.pc_list_len, td.mca.array[0].as_slice(), td.mca.dont_care_locations[0], td.no_dont_cares, &mut td.scores);
     unsafe { td.coverage_map.set_indices(&td.scores[0]) };
     bencher.iter(|| {
-        for scores in td.scores.iter_mut() {
-            scores.clear();
-        }
-        unsafe { td.coverage_map.get_high_score(&td.pc_list, td.pc_list_len, td.mca.array[1].as_slice(), &mut td.scores) };
+        for scores in td.scores.iter_mut() { scores.clear(); }
+        td.coverage_map.calculate_scores(&td.pc_list, td.pc_list_len, td.mca.array[1].as_slice(), td.mca.dont_care_locations[1], td.no_dont_cares, &mut td.scores);
     });
 }

@@ -46,8 +46,8 @@ constraints = ["constraints-minisat"]
 sub-time = ["common/sub-time"]
 no-sort = ["sut/no-sort"]
 
-score-single = ["ipog-single/score-single"]
-score-double = ["ipog-single/score-double"]
+score-single = ["cm/score-single"]
+score-double = ["cm/score-double"]
 
 no-cycle-split = ["ipog-multi/no-cycle-split"]
 

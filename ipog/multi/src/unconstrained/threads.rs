@@ -94,7 +94,7 @@ pub(crate) unsafe fn horizontal_extension_worker<ValueId: Number, ParameterId: N
         }
 
         let (start, end) = splits.next().unwrap();
-        ipog_data.cm.get_high_score_masked_triple_sub(pc_list, row, *dont_care_locations, no_dont_cares, scores, start, end);
+        ipog_data.cm.calculate_scores_sub(pc_list, row, *dont_care_locations, no_dont_cares, scores, start, end);
     }
 
     at_row_worker.store(!0, SeqCst);
